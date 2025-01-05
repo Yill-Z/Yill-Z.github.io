@@ -1,0 +1,779 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/Yill.jpg">
+  <link rel="icon" href="/img/Yill.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yill Zhang">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="clangd的默认配置，用于阅读Linux源码等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="clangd配置">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/01/clangd/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="clangd的默认配置，用于阅读Linux源码等">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-01T12:00:00.000Z">
+<meta property="article:modified_time" content="2025-01-05T13:35:26.920Z">
+<meta property="article:author" content="Yill Zhang">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="工具">
+<meta property="article:tag" content="clangd">
+<meta property="article:tag" content="clang-format">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>clangd配置 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yill-z.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yill&#39;s tech blog.</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/universal.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="clangd配置"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-01-01 20:00" pubdate>
+          2025年1月1日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          35 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">clangd配置</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="clangd"><a href="#clangd" class="headerlink" title="clangd"></a>clangd</h1><h2 id="安装clangd"><a href="#安装clangd" class="headerlink" title="安装clangd"></a>安装clangd</h2><h3 id="x86-64平台直接下载二进制"><a href="#x86-64平台直接下载二进制" class="headerlink" title="x86-64平台直接下载二进制"></a>x86-64平台直接下载二进制</h3><p>clangd的源码地址</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">https://github.com/clangd/clangd/tags<br></code></pre></td></tr></table></figure>
+
+<p>选最新的下载即可</p>
+<p>可以直接下载zip包，然后解压，将bin目录中的clangd放在&#x2F;usr&#x2F;bin&#x2F;下面，将lib目录下面的放在&#x2F;usr&#x2F;lib&#x2F;下面</p>
+<h3 id="其他平台需要自己编译"><a href="#其他平台需要自己编译" class="headerlink" title="其他平台需要自己编译"></a>其他平台需要自己编译</h3><p>llvm-project编译方法：</p>
+<ol>
+<li>git地址</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">git clone https://github.com/llvm/llvm-project.git<br></code></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>新建一个目录<code>build</code>，用来存放编译的文件，并进入该目录</li>
+<li>使用cmake进行编译</li>
+</ol>
+<blockquote>
+<p>这里的<code>$LLVM_ROOT</code>是该项目的安装目录</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">cmake $LLVM_ROOT/llvm/ -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=&quot;clang;clang-tools-extra&quot;<br></code></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>可以使用ninja来编译，会比make快n倍！！！</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">#</span><span class="language-bash">在cmake中增加 -G Ninja</span><br></code></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>编译clangd</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">cmake --build $LLVM_ROOT/build --target clangd<br></code></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>检查是否编译成功</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">check-clangd<br></code></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>在<code>build/bin</code>中即可发现clangd的二进制</li>
+</ol>
+<h2 id="安装llvm全家桶（仅限debian系）"><a href="#安装llvm全家桶（仅限debian系）" class="headerlink" title="安装llvm全家桶（仅限debian系）"></a>安装llvm全家桶（仅限debian系）</h2><p>添加llvm的官方源，可以从中安装最新的llvm和clang</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c">wget https:<span class="hljs-comment">//apt.llvm.org/llvm.sh</span><br>chmod +x llvm.sh<br>sudo ./llvm.sh<br></code></pre></td></tr></table></figure>
+
+<p>添加了新的软件源后，自由安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo apt update<br>sudo apt install clang-18 libclang-18-dev<br>sudo apt install clang-format #按你想要安装的版本来，不加版本号的话，看你的发行版默认版本，Ubuntu20.04默认是10，22.04默认是14<br></code></pre></td></tr></table></figure>
+
+<h2 id="vscode安装clangd插件"><a href="#vscode安装clangd插件" class="headerlink" title="vscode安装clangd插件"></a>vscode安装clangd插件</h2><p>直接在插件中搜索clangd，安装即可</p>
+<p>还可以安装<code>clang-format</code>，也是直接插件安装即可</p>
+<h2 id="配置clangd"><a href="#配置clangd" class="headerlink" title="配置clangd"></a>配置clangd</h2><h3 id="vscode的settings-json"><a href="#vscode的settings-json" class="headerlink" title="vscode的settings.json"></a>vscode的settings.json</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;files.exclude&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>                <span class="hljs-attr">&quot;**/.git&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/.svn&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/.hg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/CVS&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/.DS_Store&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/Thumbs.db&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/*.a&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/*.o&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/*.cmd&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>                <span class="hljs-attr">&quot;**/*.order&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>            	<span class="hljs-attr">&quot;**/arch/alpha&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/arc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/arm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/arm64&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/csky&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/h8300&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/hexagon&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/ia64&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/m68k&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/microblaze&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/mips&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/nds32&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/nios2&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/openrisc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/parisc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/powerpc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/riscv&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/s390&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/sh&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/sparc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/um&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>				<span class="hljs-attr">&quot;**/arch/x86&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>            	<span class="hljs-attr">&quot;**/arch/xtensa&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>        <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    	<span class="hljs-attr">&quot;search.exclude&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>			<span class="hljs-attr">&quot;**/node_modules&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/bower_components&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/*.code-search&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/alpha&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/arc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/arm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/arm64&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/csky&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/h8300&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/hexagon&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/ia64&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/m68k&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/microblaze&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/mips&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/nds32&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/nios2&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/openrisc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/parisc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/powerpc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/riscv&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/s390&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/sh&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/sparc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/um&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/x86&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;**/arch/xtensa&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>		<span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;C_Cpp.intelliSenseEngine&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;disabled&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;clangd.path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;clangd&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;clangd.arguments&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>                <span class="hljs-string">&quot;--pretty&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-comment">// 输出的 JSON 文件更美观</span><br>                <span class="hljs-string">&quot;--compile-commands-dir=$&#123;workspaceFolder&#125;/&quot;</span><span class="hljs-punctuation">,</span><br>                <span class="hljs-string">&quot;--query-driver=$&#123;workspaceFolder&#125;/../toolchains/gcc-chushi-12.2.0-2023.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-comment">//指定编译器路径</span><br>                <span class="hljs-string">&quot;--log=verbose&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-comment">// 让 Clangd 生成更详细的日志</span><br>                <span class="hljs-string">&quot;--background-index&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-comment">//后台分析并保存索引</span><br>            	 <span class="hljs-string">&quot;--all-scopes-completion&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 全局补全(补全建议会给出在当前作用域不可见的索引,插入后自动补充作用域标识符),例如在main()中直接写cout,即使没有`#include &lt;iostream&gt;`,也会给出`std::cout`的建议,配合&quot;--header-insertion=iwyu&quot;,还可自动插入缺失的头文件</span><br>            	 <span class="hljs-string">&quot;--clang-tidy&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 启用 Clang-Tidy 以提供「静态检查」</span><br>            	<span class="hljs-string">&quot;--clang-tidy-checks=performance-*, bugprone-*, misc-*, google-*, modernize-*, readability-*, portability-*&quot;</span><span class="hljs-punctuation">,</span><br>            	<span class="hljs-string">&quot;--completion-parse=auto&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 当 clangd 准备就绪时，用它来分析建议</span><br>            	<span class="hljs-string">&quot;--completion-style=detailed&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 建议风格：打包(重载函数只会给出一个建议);还可以设置为 detailed</span><br>            	<span class="hljs-comment">// 启用配置文件(YAML格式)</span><br>        		<span class="hljs-string">&quot;--enable-config&quot;</span><span class="hljs-punctuation">,</span><br>        		<span class="hljs-string">&quot;--fallback-style=Webkit&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 默认格式化风格: 在没找到 .clang-format 文件时采用,可用的有 LLVM, Google, Chromium, Mozilla, Webkit, Microsoft, GNU</span><br>        		<span class="hljs-string">&quot;--function-arg-placeholders=true&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 补全函数时，将会给参数提供占位符，键入后按 Tab 可以切换到下一占位符，乃至函数末</span><br>        		<span class="hljs-string">&quot;--header-insertion-decorators&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 输入建议中，已包含头文件的项与还未包含头文件的项会以圆点加以区分</span><br>        		<span class="hljs-string">&quot;--header-insertion=iwyu&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 插入建议时自动引入头文件 iwyu</span><br>        		<span class="hljs-string">&quot;--include-cleaner-stdlib&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 为标准库头文件启用清理功能(不成熟!!!)</span><br>            	<span class="hljs-string">&quot;--pch-storage=memory&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// pch 优化的位置(Memory 或 Disk,前者会增加内存开销，但会提升性能)</span><br>            	<span class="hljs-string">&quot;--ranking-model=decision_forest&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 建议的排序方案：hueristics (启发式), decision_forest (决策树)</span><br>        		<span class="hljs-string">&quot;-j=12&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 同时开启的任务数量</span><br>        <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    	<span class="hljs-comment">// 找不到编译数据库(compile_flags.json 文件)时使用的编译器选项,这样的缺陷是不能直接索引同一项目的不同文件,只能分析系统头文件、当前文件和被include的文件</span><br>    	<span class="hljs-attr">&quot;clangd.fallbackFlags&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>            <span class="hljs-string">&quot;-pedantic&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wall&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wextra&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wcast-align&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wdouble-promotion&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wformat=2&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wimplicit-fallthrough&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wmisleading-indentation&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wnon-virtual-dtor&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wnull-dereference&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wold-style-cast&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Woverloaded-virtual&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wpedantic&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wshadow&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-Wunused&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-pthread&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-fuse-ld=lld&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-fsanitize=address&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-fsanitize=undefined&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-string">&quot;-stdlib=libc++&quot;</span><br>            <span class="hljs-comment">//这里可以包含额外的头文件路径</span><br>    	<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    	<span class="hljs-attr">&quot;clangd.checkUpdates&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 自动检测 clangd 更新</span><br>    	<span class="hljs-attr">&quot;clangd.onConfigChanged&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;restart&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 重启 clangd 时重载配置,具体方法: F1 + Fn 打开命令面板，然后搜索“clangd: restart&quot;</span><br>    	<span class="hljs-attr">&quot;clangd.serverCompletionRanking&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 借助网上的信息排序建议</span><br>    	<span class="hljs-attr">&quot;clangd.detectExtensionConflicts&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 当其它拓展与 clangd 冲突时警告并建议禁用</span><br>    	<span class="hljs-attr">&quot;editor.suggest.snippetsPreventQuickSuggestions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// clangd的snippets有很多的跳转点，不用这个就必须手动触发Intellisense了</span><br>        <span class="hljs-attr">&quot;editor.formatOnSave&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;editor.formatOnType&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;editor.formatOnPaste&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;clang-format.executable&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;/usr/bin/clang-format&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;files.associations&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>                <span class="hljs-attr">&quot;*.h&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;c&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>注意的要点：</p>
+<ol>
+<li>编译时使用bear产生compile_commands.json文件，放在<code>--compile-commands-dir</code>指定的目录中。</li>
+<li>使用cmake时，可以指定<code>cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1</code>来产生compile_commands.json。</li>
+<li>将vscode中的c&#x2F;c++的智能补全禁用掉（或者就不要安装微软的c&#x2F;cpp扩展），即<code>&quot;C_Cpp.intelliSenseEngine&quot;: &quot;disabled&quot;</code></li>
+</ol>
+<h3 id="clangd的config-yaml"><a href="#clangd的config-yaml" class="headerlink" title="clangd的config.yaml"></a>clangd的config.yaml</h3><p>clangd的配置采用YAML格式，包括用户配置（全局）和项目配置</p>
+<p>其中，用户配置在<code>~/.config/clangd/config.yaml</code>里面，项目配置在项目根目录的<code>.clangd</code>中</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">Diagnostics:</span> <span class="hljs-comment">#诊断</span><br>  <span class="hljs-attr">ClangTidy:</span><br>    <span class="hljs-attr">Add:</span> [<span class="hljs-string">&quot;*&quot;</span>]<br>    <span class="hljs-attr">Remove:</span><br>      [<br>        <span class="hljs-string">abseil*</span>,<br>        <span class="hljs-string">fuchsia*</span>,<br>        <span class="hljs-string">llvmlib*</span>,<br>        <span class="hljs-string">zircon*</span>,<br>        <span class="hljs-string">altera*</span>,<br>        <span class="hljs-string">google-readability-todo</span>,<br>        <span class="hljs-string">readability-braces-around-statements</span>,<br>        <span class="hljs-string">hicpp-braces-around-statements</span>,<br>        <span class="hljs-string">modernize-use-trailing-return-type</span>, <span class="hljs-comment"># 不要每个都加上尾返回值类型</span><br>        <span class="hljs-string">readability-identifier-length</span>, <span class="hljs-comment"># 不检查变量名长度</span><br>        <span class="hljs-string">cppcoreguidelines-avoid-magic-numbers</span>, <span class="hljs-comment"># 不检查魔法数字</span><br>        <span class="hljs-string">readability-magic-numbers</span>, <span class="hljs-comment">#同上</span><br>      ]<br><span class="hljs-attr">Index:</span> <span class="hljs-comment">#索引</span><br>  <span class="hljs-attr">Background:</span> <span class="hljs-string">Build</span><br><span class="hljs-attr">CompileFlags:</span> <span class="hljs-comment"># 编译选项</span><br>  <span class="hljs-attr">Add:</span> [<span class="hljs-string">-std=c++20</span>, <span class="hljs-string">-Wall</span>, <span class="hljs-string">-xc++</span>]<br>  <span class="hljs-comment"># Add里面也可以增加你想要包含的头文件路径</span><br>  <span class="hljs-attr">Compiler:</span> <span class="hljs-string">clang++</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="clang-format"><a href="#clang-format" class="headerlink" title="clang-format"></a>clang-format</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment">#基于那个配置文件</span><br><span class="hljs-attr">BasedOnStyle:</span> <span class="hljs-string">Google</span><br><span class="hljs-attr">Language:</span> <span class="hljs-string">Cpp</span><br><span class="hljs-comment"># 标准: Cpp03, Cpp11, Auto</span><br><span class="hljs-attr">Standard:</span> <span class="hljs-string">c++20</span><br><span class="hljs-attr">ColumnLimit:</span> <span class="hljs-number">120</span><br><span class="hljs-attr">BraceWrapping:</span><br>  <span class="hljs-comment"># case标签后面</span><br>  <span class="hljs-attr">AfterCaseLabel:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># class定义后面</span><br>  <span class="hljs-attr">AfterClass:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># 控制语句后面</span><br>  <span class="hljs-attr">AfterControlStatement:</span> <span class="hljs-string">Never</span><br>  <span class="hljs-comment"># enum定义后面</span><br>  <span class="hljs-attr">AfterEnum:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># 函数定义后面</span><br>  <span class="hljs-attr">AfterFunction:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># 命名空间定义后面</span><br>  <span class="hljs-attr">AfterNamespace:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># ObjC定义后面</span><br>  <span class="hljs-attr">AfterObjCDeclaration:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># struct定义后面</span><br>  <span class="hljs-attr">AfterStruct:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># union定义后面</span><br>  <span class="hljs-attr">AfterUnion:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment">#ExternBlock定义后面</span><br>  <span class="hljs-attr">AfterExternBlock:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># catch之前</span><br>  <span class="hljs-attr">BeforeCatch:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># else之前</span><br>  <span class="hljs-attr">BeforeElse:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># lambda块之前</span><br>  <span class="hljs-attr">BeforeLambdaBody:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># while之前</span><br>  <span class="hljs-attr">BeforeWhile:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># 缩进大括号</span><br>  <span class="hljs-attr">IndentBraces:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-comment"># 分割空函数</span><br>  <span class="hljs-attr">SplitEmptyFunction:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-comment"># 分割空记录</span><br>  <span class="hljs-attr">SplitEmptyRecord:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-comment"># 分割空命名空间</span><br>  <span class="hljs-attr">SplitEmptyNamespace:</span> <span class="hljs-literal">true</span><br><br><span class="hljs-comment"># 在 @property 后面添加空格, \@property (readonly) 而不是 \@property(readonly).</span><br><span class="hljs-attr">ObjCSpaceAfterProperty:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 访问说明符(public、private等)的偏移</span><br><span class="hljs-attr">AccessModifierOffset:</span> <span class="hljs-number">-4</span><br><br><span class="hljs-comment"># 开括号(开圆括号、开尖括号、开方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在开括号后换行)</span><br><span class="hljs-attr">AlignAfterOpenBracket:</span> <span class="hljs-string">Align</span><br><span class="hljs-comment"># 连续赋值时，对齐所有等号</span><br><span class="hljs-attr">AlignConsecutiveAssignments:</span> <span class="hljs-string">Consecutive</span><br><span class="hljs-comment"># 连续声明时，对齐所有声明的变量名</span><br><span class="hljs-attr">AlignConsecutiveDeclarations:</span> <span class="hljs-string">Consecutive</span><br><span class="hljs-comment"># 连续宏声明时，对齐空格 #clang-format-10 可用</span><br><span class="hljs-attr">AlignConsecutiveMacros:</span> <span class="hljs-string">Consecutive</span><br><span class="hljs-comment"># 对齐连接符: DontAlign(不对齐)， Left(左对齐), Right(右对齐)</span><br><span class="hljs-attr">AlignEscapedNewlines:</span> <span class="hljs-string">Left</span><br><span class="hljs-comment"># 水平对齐二元和三元表达式的操作数</span><br><span class="hljs-attr">AlignOperands:</span> <span class="hljs-string">Align</span><br><span class="hljs-comment"># 对齐连续的尾随的注释</span><br><span class="hljs-attr">AlignTrailingComments:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 允许函数调用的所有参数在放在下一行</span><br><span class="hljs-attr">AllowAllArgumentsOnNextLine:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 允许函数声明的所有参数在放在下一行</span><br><span class="hljs-attr">AllowAllParametersOfDeclarationOnNextLine:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 允许短的块放在同一行</span><br><span class="hljs-attr">AllowShortBlocksOnASingleLine:</span> <span class="hljs-string">Never</span><br><span class="hljs-comment"># 允许短的case标签放在同一行</span><br><span class="hljs-attr">AllowShortCaseLabelsOnASingleLine:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 允许短的枚举放在同一行</span><br><span class="hljs-attr">AllowShortEnumsOnASingleLine:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All</span><br><span class="hljs-attr">AllowShortFunctionsOnASingleLine:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 允许短的if语句保持在同一行</span><br><span class="hljs-attr">AllowShortIfStatementsOnASingleLine:</span> <span class="hljs-string">Never</span><br><span class="hljs-comment"># 允许短的Lambdas语句保持在同一行</span><br><span class="hljs-attr">AllowShortLambdasOnASingleLine:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 允许短的循环保持在同一行</span><br><span class="hljs-attr">AllowShortLoopsOnASingleLine:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 总是在定义返回类型后换行(deprecated)</span><br><span class="hljs-attr">AlwaysBreakAfterDefinitionReturnType:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 总是在返回类型后换行: None, All, TopLevel(顶级函数，不包括在类中的函数),</span><br><span class="hljs-comment">#   AllDefinitions(所有的定义，不包括声明), TopLevelDefinitions(所有的顶级函数的定义)</span><br><span class="hljs-attr">AlwaysBreakAfterReturnType:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 总是在多行string字面量前换行</span><br><span class="hljs-attr">AlwaysBreakBeforeMultilineStrings:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 总是在template声明后换行</span><br><span class="hljs-attr">AlwaysBreakTemplateDeclarations:</span> <span class="hljs-literal">Yes</span><br><span class="hljs-comment"># false表示函数实参要么都在同一行，要么都各自一行</span><br><span class="hljs-attr">BinPackArguments:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># false表示所有形参要么都在同一行，要么都各自一行</span><br><span class="hljs-attr">BinPackParameters:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 大括号换行，只有当BreakBeforeBraces设置为Custom时才有效</span><br><span class="hljs-comment"># 在二元运算符前换行: None(在操作符后换行), NonAssignment(在非赋值的操作符前换行), All(在操作符前换行)</span><br><span class="hljs-attr">BreakBeforeBinaryOperators:</span> <span class="hljs-string">NonAssignment</span><br><span class="hljs-comment"># 在大括号前换行: Attach(始终将大括号附加到周围的上下文), Linux(除函数、命名空间和类定义，与Attach类似),</span><br><span class="hljs-comment">#   Mozilla(除枚举、函数、记录定义，与Attach类似), Stroustrup(除函数定义、catch、else，与Attach类似),</span><br><span class="hljs-comment">#   Allman(总是在大括号前换行), GNU(总是在大括号前换行，并对于控制语句的大括号增加额外的缩进), WebKit(在函数前换行), Custom</span><br><span class="hljs-comment">#   注：这里认为语句块也属于函数</span><br><span class="hljs-attr">BreakBeforeBraces:</span> <span class="hljs-string">Custom</span><br><span class="hljs-comment"># 在三元运算符前换行</span><br><span class="hljs-attr">BreakBeforeTernaryOperators:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在构造函数的初始化列表的逗号前换行</span><br><span class="hljs-attr">BreakConstructorInitializersBeforeComma:</span> <span class="hljs-literal">false</span><br><span class="hljs-attr">BreakConstructorInitializers:</span> <span class="hljs-string">BeforeColon</span><br><span class="hljs-comment"># 在类声明继承列表的逗号前换行</span><br><span class="hljs-attr">BreakInheritanceList:</span> <span class="hljs-string">BeforeColon</span><br><span class="hljs-attr">BreakAfterJavaFieldAnnotations:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 允许中断长字符串</span><br><span class="hljs-attr">BreakStringLiterals:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 描述具有特殊意义的注释的正则表达式，它不应该被分割为多行或以其它方式改变</span><br><span class="hljs-attr">CommentPragmas:</span> <span class="hljs-string">&#x27;^ IWYU pragma:&#x27;</span><br><span class="hljs-comment"># 允许连续的名称空间声明将在同一行</span><br><span class="hljs-attr">CompactNamespaces:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 构造函数的初始化列表的缩进宽度</span><br><span class="hljs-attr">ConstructorInitializerIndentWidth:</span> <span class="hljs-number">4</span><br><span class="hljs-comment"># 延续的行的缩进宽度</span><br><span class="hljs-attr">ContinuationIndentWidth:</span> <span class="hljs-number">4</span><br><span class="hljs-comment"># 去除C++11的列表初始化的大括号&#123;后和&#125;前的空格</span><br><span class="hljs-attr">Cpp11BracedListStyle:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 继承最常用的指针和引用的对齐方式</span><br><span class="hljs-attr">DerivePointerAlignment:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 关闭格式化</span><br><span class="hljs-attr">DisableFormat:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 修饰符后放置空行</span><br><span class="hljs-attr">EmptyLineAfterAccessModifier:</span> <span class="hljs-string">Never</span><br><span class="hljs-comment"># 修饰符前放置空行</span><br><span class="hljs-attr">EmptyLineBeforeAccessModifier:</span> <span class="hljs-string">LogicalBlock</span><br><span class="hljs-comment"># 自动检测函数的调用和定义是否被格式为每行一个参数(Experimental)</span><br><span class="hljs-attr">ExperimentalAutoDetectBinPacking:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 修正命名空间注释</span><br><span class="hljs-attr">FixNamespaceComments:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 需要被解读为foreach循环而不是函数调用的宏</span><br><span class="hljs-attr">ForEachMacros:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">foreach</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">Q_FOREACH</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">BOOST_FOREACH</span><br><span class="hljs-comment"># 需要解读为if的函数</span><br><span class="hljs-attr">IfMacros:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">KJ_IF_MAYBE</span><br><span class="hljs-attr">IncludeBlocks:</span> <span class="hljs-string">Regroup</span><br><span class="hljs-comment"># 对#include进行排序，匹配了某正则表达式的#include拥有对应的优先级，匹配不到的则默认优先级为INT_MAX(优先级越小排序越靠前)，</span><br><span class="hljs-comment">#   可以定义负数优先级从而保证某些#include永远在最前面</span><br><span class="hljs-attr">IncludeCategories:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Regex:</span> <span class="hljs-string">&#x27;^&lt;ext/.*\.h&gt;&#x27;</span><br>    <span class="hljs-attr">Priority:</span> <span class="hljs-number">2</span><br>    <span class="hljs-attr">SortPriority:</span> <span class="hljs-number">0</span><br>    <span class="hljs-attr">CaseSensitive:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Regex:</span> <span class="hljs-string">&#x27;^&lt;.*\.h&gt;&#x27;</span><br>    <span class="hljs-attr">Priority:</span> <span class="hljs-number">1</span><br>    <span class="hljs-attr">SortPriority:</span> <span class="hljs-number">0</span><br>    <span class="hljs-attr">CaseSensitive:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Regex:</span> <span class="hljs-string">&#x27;^&lt;.*&#x27;</span><br>    <span class="hljs-attr">Priority:</span> <span class="hljs-number">2</span><br>    <span class="hljs-attr">SortPriority:</span> <span class="hljs-number">0</span><br>    <span class="hljs-attr">CaseSensitive:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Regex:</span> <span class="hljs-string">&#x27;.*&#x27;</span><br>    <span class="hljs-attr">Priority:</span> <span class="hljs-number">3</span><br>    <span class="hljs-attr">SortPriority:</span> <span class="hljs-number">0</span><br>    <span class="hljs-attr">CaseSensitive:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># include块排序</span><br><span class="hljs-attr">IncludeIsMainRegex:</span> <span class="hljs-string">&#x27;([-_](test|unittest))?$&#x27;</span><br><span class="hljs-comment"># 缩进修饰符</span><br><span class="hljs-attr">IndentAccessModifiers:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 缩进case块</span><br><span class="hljs-attr">IndentCaseBlocks:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 缩进case标签</span><br><span class="hljs-attr">IndentCaseLabels:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 缩进goto标签</span><br><span class="hljs-attr">IndentGotoLabels:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 预处理缩进</span><br><span class="hljs-attr">IndentPPDirectives:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 缩进extern块</span><br><span class="hljs-attr">IndentExternBlock:</span> <span class="hljs-string">AfterExternBlock</span><br><span class="hljs-comment"># 缩进宽度</span><br><span class="hljs-attr">IndentWidth:</span> <span class="hljs-number">4</span><br><span class="hljs-comment"># 函数返回类型换行时，缩进函数声明或函数定义的函数名</span><br><span class="hljs-attr">IndentWrappedFunctionNames:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 添加尾部注释</span><br><span class="hljs-attr">InsertTrailingCommas:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 保留在块开始处的空行</span><br><span class="hljs-attr">KeepEmptyLinesAtTheStartOfBlocks:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># Lambda块缩进</span><br><span class="hljs-attr">LambdaBodyIndentation:</span> <span class="hljs-string">Signature</span><br><span class="hljs-comment"># 开始一个块的宏的正则表达式</span><br><span class="hljs-attr">MacroBlockBegin:</span> <span class="hljs-string">&#x27;&#x27;</span><br><span class="hljs-comment"># 结束一个块的宏的正则表达式</span><br><span class="hljs-attr">MacroBlockEnd:</span> <span class="hljs-string">&#x27;&#x27;</span><br><span class="hljs-comment"># 连续空行的最大数量</span><br><span class="hljs-attr">MaxEmptyLinesToKeep:</span> <span class="hljs-number">1</span><br><span class="hljs-comment"># 命名空间的缩进: None, Inner(缩进嵌套的命名空间中的内容), All</span><br><span class="hljs-attr">NamespaceIndentation:</span> <span class="hljs-string">None</span><br><span class="hljs-comment"># 使用ObjC块时缩进宽度</span><br><span class="hljs-attr">ObjCBlockIndentWidth:</span> <span class="hljs-number">4</span><br><span class="hljs-comment"># 在ObjC的protocol列表前添加一个空格</span><br><span class="hljs-attr">ObjCSpaceBeforeProtocolList:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 使用的包构造函数初始化式样式</span><br><span class="hljs-attr">PackConstructorInitializers:</span> <span class="hljs-string">NextLine</span><br><span class="hljs-comment"># 在call(后对函数调用换行的penalty</span><br><span class="hljs-attr">PenaltyBreakBeforeFirstCallParameter:</span> <span class="hljs-number">19</span><br><span class="hljs-comment"># 在一个注释中引入换行的penalty</span><br><span class="hljs-attr">PenaltyBreakComment:</span> <span class="hljs-number">300</span><br><span class="hljs-comment"># 第一次在&lt;&lt;前换行的penalty</span><br><span class="hljs-attr">PenaltyBreakFirstLessLess:</span> <span class="hljs-number">120</span><br><span class="hljs-comment"># 在一个字符串字面量中引入换行的penalty</span><br><span class="hljs-attr">PenaltyBreakString:</span> <span class="hljs-number">1000</span><br><span class="hljs-comment"># 对于每个在行字符数限制之外的字符的penalty</span><br><span class="hljs-attr">PenaltyExcessCharacter:</span> <span class="hljs-number">1000000</span><br><span class="hljs-comment"># 将函数的返回类型放到它自己的行的penalty</span><br><span class="hljs-attr">PenaltyReturnTypeOnItsOwnLine:</span> <span class="hljs-number">200</span><br><span class="hljs-comment"># 指针和引用的对齐: Left, Right, Middle</span><br><span class="hljs-attr">PointerAlignment:</span> <span class="hljs-string">Left</span><br><span class="hljs-attr">PPIndentWidth:</span> <span class="hljs-number">-1</span><br><span class="hljs-attr">RawStringFormats:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Language:</span> <span class="hljs-string">Cpp</span><br>    <span class="hljs-attr">Delimiters:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">cc</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">CC</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">cpp</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">Cpp</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">CPP</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&#x27;c++&#x27;</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&#x27;C++&#x27;</span><br>    <span class="hljs-attr">CanonicalDelimiter:</span> <span class="hljs-string">&#x27;&#x27;</span><br>    <span class="hljs-attr">BasedOnStyle:</span> <span class="hljs-string">google</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">Language:</span> <span class="hljs-string">TextProto</span><br>    <span class="hljs-attr">Delimiters:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">pb</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">PB</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">proto</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">PROTO</span><br>    <span class="hljs-attr">EnclosingFunctions:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">EqualsProto</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">EquivToProto</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">PARSE_PARTIAL_TEXT_PROTO</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">PARSE_TEST_PROTO</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">PARSE_TEXT_PROTO</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">ParseTextOrDie</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">ParseTextProtoOrDie</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">ParseTestProto</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">ParsePartialTestProto</span><br>    <span class="hljs-attr">CanonicalDelimiter:</span> <span class="hljs-string">pb</span><br>    <span class="hljs-attr">BasedOnStyle:</span> <span class="hljs-string">google</span><br><span class="hljs-comment"># 引用对齐</span><br><span class="hljs-attr">ReferenceAlignment:</span> <span class="hljs-string">Pointer</span><br><span class="hljs-comment"># 允许重新排版注释</span><br><span class="hljs-attr">ReflowComments:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 允许排序#include</span><br><span class="hljs-attr">SortIncludes:</span> <span class="hljs-string">CaseSensitive</span><br><span class="hljs-comment"># 允许排序声明</span><br><span class="hljs-attr">SortUsingDeclarations:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 单独的定义块</span><br><span class="hljs-attr">SeparateDefinitionBlocks:</span> <span class="hljs-string">Always</span><br><span class="hljs-comment"># 在C风格类型转换后添加空格</span><br><span class="hljs-attr">SpaceAfterCStyleCast:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在赋值运算符之前添加空格</span><br><span class="hljs-attr">SpaceBeforeAssignmentOperators:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在逻辑非操作符之后插入一个空格</span><br><span class="hljs-attr">SpaceAfterLogicalNot:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在&#x27; template &#x27;关键字之后会插入一个空格</span><br><span class="hljs-attr">SpaceAfterTemplateKeyword:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在用于初始化对象的c++ 11带括号的列表之前(在前面的标识符或类型之后)将插入一个空格</span><br><span class="hljs-attr">SpaceBeforeCpp11BracedList:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 构造函数初始化式冒号前的空格将被删除</span><br><span class="hljs-attr">SpaceBeforeCtorInitializerColon:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在继承冒号前添加空格</span><br><span class="hljs-attr">SpaceBeforeInheritanceColon:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 控制括号前的单独空格。</span><br><span class="hljs-attr">SpaceBeforeParens:</span> <span class="hljs-string">ControlStatements</span><br><span class="hljs-comment"># 开圆括号之前添加一个空格</span><br><span class="hljs-attr">SpaceBeforeParensOptions:</span><br>  <span class="hljs-attr">AfterControlStatements:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-attr">AfterForeachMacros:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-attr">AfterFunctionDefinitionName:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-attr">AfterFunctionDeclarationName:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-attr">AfterIfMacros:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-attr">AfterOverloadedOperator:</span> <span class="hljs-literal">false</span><br>  <span class="hljs-attr">BeforeNonEmptyParentheses:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在空的圆括号中添加空格</span><br><span class="hljs-attr">SpaceInEmptyParentheses:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在基于冒号的范围循环之前 添加空格</span><br><span class="hljs-attr">SpaceBeforeRangeBasedForLoopColon:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在尾随的评论前添加的空格数(只适用于//)</span><br><span class="hljs-attr">SpacesBeforeTrailingComments:</span> <span class="hljs-number">2</span><br><span class="hljs-comment"># 在尖括号的&lt;后和&gt;前添加空格</span><br><span class="hljs-attr">SpacesInAngles:</span> <span class="hljs-string">Never</span><br><span class="hljs-comment"># 在容器(ObjC和JavaScript的数组和字典等)字面量中添加空格</span><br><span class="hljs-attr">SpacesInContainerLiterals:</span> <span class="hljs-literal">true</span><br><span class="hljs-comment"># 在C风格类型转换的括号中添加空格</span><br><span class="hljs-attr">SpacesInCStyleCastParentheses:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在圆括号的(后和)前添加空格</span><br><span class="hljs-attr">SpacesInParentheses:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># 在方括号的[后和]前添加空格，lamda表达式和未指明大小的数组的声明不受影响</span><br><span class="hljs-attr">SpacesInSquareBrackets:</span> <span class="hljs-literal">false</span><br><span class="hljs-comment"># tab宽度</span><br><span class="hljs-attr">TabWidth:</span> <span class="hljs-number">4</span><br><span class="hljs-comment"># 使用tab字符: Never, ForIndentation, ForContinuationAndIndentation, Always</span><br><span class="hljs-attr">UseTab:</span> <span class="hljs-string">Always</span><br><span class="hljs-attr">DeriveLineEnding:</span> <span class="hljs-literal">false</span><br><span class="hljs-attr">UseCRLF:</span> <span class="hljs-literal">false</span><br><span class="hljs-attr">WhitespaceSensitiveMacros:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">STRINGIZE</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">PP_STRINGIZE</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">BOOST_PP_STRINGIZE</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">NS_SWIFT_NAME</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">CF_SWIFT_NAME</span><br><br></code></pre></td></tr></table></figure>
+
+<h2 id="使用Clang编译linux内核"><a href="#使用Clang编译linux内核" class="headerlink" title="使用Clang编译linux内核"></a>使用Clang编译linux内核</h2><h3 id="直接编译"><a href="#直接编译" class="headerlink" title="直接编译"></a>直接编译</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">make CC=clang defconfig<br>make CC=clang<br></code></pre></td></tr></table></figure>
+
+<h3 id="交叉编译"><a href="#交叉编译" class="headerlink" title="交叉编译"></a>交叉编译</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-<br></code></pre></td></tr></table></figure>
+
+<h2 id="使用LLVM编译"><a href="#使用LLVM编译" class="headerlink" title="使用LLVM编译"></a>使用LLVM编译</h2><h3 id="直接编译-1"><a href="#直接编译-1" class="headerlink" title="直接编译"></a>直接编译</h3><p>编译时指定llvm为编译工具链</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \ OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld<br></code></pre></td></tr></table></figure>
+
+<p>或者直接使用kbuild的简单编译法</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make LLVM=1<br></code></pre></td></tr></table></figure>
+
+<p>如果你的LLVM工具链不在系统路径里面</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make LLVM=/path/to/llvm/<br></code></pre></td></tr></table></figure>
+
+<p>如果你想直接使用某个版本的LLVM，这将直接使用clang-18等</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make LLVM=-18<br></code></pre></td></tr></table></figure>
+
+<h3 id="交叉编译-1"><a href="#交叉编译-1" class="headerlink" title="交叉编译"></a>交叉编译</h3><p> <code>CROSS_COMPILE</code>用来指定交叉编译器，如果在LLVM中没有指定<code>CROSS_COMPILE</code>，那么会使用<code>ARCH</code>来寻找，即，如果你仅使用LLVM工具，<code>CROSS_COMPILE</code>是不必要的。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make ARCH=arm64 LLVM=1<br></code></pre></td></tr></table></figure>
+
+<p>如果需要禁止clang自身的汇编器，可以使用<code>LLVM_IAS=0</code>，此时的<code>CROSS_COMPILE</code>是不可缺少的</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">make ARCH=arm64 LLVM=1 LLVM_IAS=0 CROSS_COMPILE=arm64-linux-gnu-<br></code></pre></td></tr></table></figure>
+
+<h2 id="维护符号链接"><a href="#维护符号链接" class="headerlink" title="维护符号链接"></a>维护符号链接</h2><p>由于使用llvm.sh安装的llvm全家桶只有具体的版本，而不是一个通用的符号链接，因此需要自己维护这个关系</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-meta">#!/bin/bash</span><br><br><span class="hljs-comment"># 定义要管理的LLVM工具</span><br>llvm_tools=(<br>    <span class="hljs-string">&quot;clang&quot;</span> <span class="hljs-string">&quot;clang++&quot;</span> <span class="hljs-string">&quot;clangd&quot;</span> <span class="hljs-string">&quot;clang-format&quot;</span> <span class="hljs-string">&quot;clang-tidy&quot;</span><br>    <span class="hljs-string">&quot;llvm-ar&quot;</span> <span class="hljs-string">&quot;llvm-as&quot;</span> <span class="hljs-string">&quot;llvm-bcanalyzer&quot;</span> <span class="hljs-string">&quot;llvm-cat&quot;</span> <span class="hljs-string">&quot;llvm-config&quot;</span> <br>    <span class="hljs-string">&quot;llvm-cov&quot;</span> <span class="hljs-string">&quot;llvm-cxxfilt&quot;</span> <span class="hljs-string">&quot;llvm-diff&quot;</span> <span class="hljs-string">&quot;llvm-dis&quot;</span> <span class="hljs-string">&quot;llvm-dwarfdump&quot;</span><br>    <span class="hljs-string">&quot;llvm-extract&quot;</span> <span class="hljs-string">&quot;llvm-link&quot;</span> <span class="hljs-string">&quot;llvm-lto&quot;</span> <span class="hljs-string">&quot;llvm-mc&quot;</span> <span class="hljs-string">&quot;llvm-nm&quot;</span><br>    <span class="hljs-string">&quot;llvm-objcopy&quot;</span> <span class="hljs-string">&quot;llvm-objdump&quot;</span> <span class="hljs-string">&quot;llvm-opt-report&quot;</span> <span class="hljs-string">&quot;llvm-profdata&quot;</span><br>    <span class="hljs-string">&quot;llvm-ranlib&quot;</span> <span class="hljs-string">&quot;llvm-readelf&quot;</span> <span class="hljs-string">&quot;llvm-readobj&quot;</span> <span class="hljs-string">&quot;llvm-rtdyld&quot;</span><br>    <span class="hljs-string">&quot;llvm-size&quot;</span> <span class="hljs-string">&quot;llvm-strings&quot;</span> <span class="hljs-string">&quot;llvm-strip&quot;</span> <span class="hljs-string">&quot;llvm-symbolizer&quot;</span><br>    <span class="hljs-string">&quot;llvm-tblgen&quot;</span> <span class="hljs-string">&quot;lld&quot;</span> <span class="hljs-string">&quot;ld.lld&quot;</span><br>)<br><br><span class="hljs-comment"># 查找最新的LLVM工具</span><br><span class="hljs-function"><span class="hljs-title">find_latest_llvm</span></span>() &#123;<br>    <span class="hljs-built_in">local</span> tool_name=<span class="hljs-variable">$1</span><br>    <span class="hljs-comment"># 使用find命令查找所有的可执行文件</span><br>    <span class="hljs-built_in">local</span> versions=$(find /usr/bin -name <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;tool_name&#125;</span>-*&quot;</span> | grep -oE <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;tool_name&#125;</span>-[0-9\.]+&quot;</span> | <span class="hljs-built_in">sort</span> -V | <span class="hljs-built_in">tail</span> -1)<br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;/usr/bin/<span class="hljs-variable">$&#123;versions&#125;</span>&quot;</span><br>&#125;<br><br><span class="hljs-comment"># 更新update-alternatives</span><br><span class="hljs-function"><span class="hljs-title">update_alternatives</span></span>() &#123;<br>    <span class="hljs-built_in">local</span> tool_name=<span class="hljs-variable">$1</span><br>    <span class="hljs-built_in">local</span> latest_tool_path=$(find_latest_llvm <span class="hljs-variable">$&#123;tool_name&#125;</span>)<br>    <span class="hljs-keyword">if</span> [ -z <span class="hljs-string">&quot;<span class="hljs-variable">$latest_tool_path</span>&quot;</span> ]; <span class="hljs-keyword">then</span><br>        <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;未找到<span class="hljs-variable">$&#123;tool_name&#125;</span>的版本，跳过。&quot;</span><br>        <span class="hljs-built_in">return</span><br>    <span class="hljs-keyword">fi</span><br><br>    <span class="hljs-comment"># 使用update-alternatives进行更新</span><br>    <span class="hljs-built_in">sudo</span> update-alternatives --install /usr/bin/<span class="hljs-variable">$&#123;tool_name&#125;</span> <span class="hljs-variable">$&#123;tool_name&#125;</span> <span class="hljs-variable">$&#123;latest_tool_path&#125;</span> 100<br>    <span class="hljs-built_in">sudo</span> update-alternatives --<span class="hljs-built_in">set</span> <span class="hljs-variable">$&#123;tool_name&#125;</span> <span class="hljs-variable">$&#123;latest_tool_path&#125;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;tool_name&#125;</span>已更新为<span class="hljs-variable">$&#123;latest_tool_path&#125;</span>&quot;</span><br>&#125;<br><br><span class="hljs-comment"># 遍历所有的LLVM工具并更新</span><br><span class="hljs-keyword">for</span> tool <span class="hljs-keyword">in</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;llvm_tools[@]&#125;</span>&quot;</span>; <span class="hljs-keyword">do</span><br>    update_alternatives <span class="hljs-variable">$&#123;tool&#125;</span><br><span class="hljs-keyword">done</span><br><br><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;所有LLVM工具均已更新完毕。&quot;</span><br><br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AE%9E%E7%94%A8%E5%B7%A5%E5%85%B7/" class="category-chain-item">实用工具</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/" class="print-no-link">#嵌入式</a>
+      
+        <a href="/tags/%E5%B7%A5%E5%85%B7/" class="print-no-link">#工具</a>
+      
+        <a href="/tags/clangd/" class="print-no-link">#clangd</a>
+      
+        <a href="/tags/clang-format/" class="print-no-link">#clang-format</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>clangd配置</div>
+      <div>https://yill-z.github.io/2025/01/01/clangd/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Yill Zhang</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年1月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/01/01/Make/" title="Make语言详解">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Make语言详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/01/01/docker/" title="docker安装配置">
+                        <span class="hidden-mobile">docker安装配置</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Yill-Z/Yill-Z.github.io');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -19,23 +19,24 @@
   <meta name="author" content="Yill Zhang">
   <meta name="keywords" content="">
   
-    <meta name="description" content="嵌入式Linux内核移植两三事">
+    <meta name="description" content="shell脚本语言的快速入门">
 <meta property="og:type" content="article">
-<meta property="og:title" content="嵌入式Linux内核移植两三事">
-<meta property="og:url" content="https://yill-z.github.io/2025/01/01/%E5%B5%8C%E5%85%A5%E5%BC%8FLinux%E5%86%85%E6%A0%B8%E7%A7%BB%E6%A4%8D%E4%B8%A4%E4%B8%89%E4%BA%8B/index.html">
+<meta property="og:title" content="shell语言详解">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/01/shell/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="嵌入式Linux内核移植两三事">
+<meta property="og:description" content="shell脚本语言的快速入门">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-01-01T12:00:00.000Z">
-<meta property="article:modified_time" content="2025-01-05T13:28:10.310Z">
+<meta property="article:modified_time" content="2025-01-05T13:55:54.203Z">
 <meta property="article:author" content="Yill Zhang">
-<meta property="article:tag" content="嵌入式">
-<meta property="article:tag" content="Linux内核移植">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="脚本语言">
+<meta property="article:tag" content="shell">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>嵌入式Linux内核移植两三事 - Hexo</title>
+  <title>shell语言详解 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -201,7 +202,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="嵌入式Linux内核移植两三事"></span>
+            <span id="subtitle" data-typed-text="shell语言详解"></span>
           
         </div>
 
@@ -272,86 +273,260 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">嵌入式Linux内核移植两三事</h1>
+            <h1 id="seo-header">shell语言详解</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="嵌入式Linux内核移植两三事"><a href="#嵌入式Linux内核移植两三事" class="headerlink" title="嵌入式Linux内核移植两三事"></a>嵌入式Linux内核移植两三事</h1><h2 id="内核源码的来源"><a href="#内核源码的来源" class="headerlink" title="内核源码的来源"></a>内核源码的来源</h2><p>有三种方式：</p>
-<ol>
-<li><code>Linux</code>社区</li>
-<li>芯片原厂（如恩智浦<code>linux-imx</code>）</li>
-<li>板卡厂商（如韬睿<code>toradex</code>）</li>
-</ol>
-<h3 id="Linux社区"><a href="#Linux社区" class="headerlink" title="Linux社区"></a>Linux社区</h3><p>优势：更注重通用性</p>
-<p>劣势：没有对单个具体平台的优化</p>
-<h3 id="芯片原厂"><a href="#芯片原厂" class="headerlink" title="芯片原厂"></a>芯片原厂</h3><p>优势：在社区源码的基础上，针对某款芯片（如<code>imx8qm</code>）做了优化，适配了特定的<code>BSP</code>驱动，而这些驱动可能并还没来得及合入社区主线</p>
-<p>劣势：易用性不足，文档不足</p>
-<h3 id="板卡厂商"><a href="#板卡厂商" class="headerlink" title="板卡厂商"></a>板卡厂商</h3><p>优势：注重用户体验，文档充足</p>
-<p>劣势：封装更好意味着学习者对原理的理解会不足</p>
-<h2 id="内核移植的三个类型"><a href="#内核移植的三个类型" class="headerlink" title="内核移植的三个类型"></a>内核移植的三个类型</h2><h3 id="内核架构移植"><a href="#内核架构移植" class="headerlink" title="内核架构移植"></a>内核架构移植</h3><p>将<code>Linux</code>内核从一种架构（如<code>x86</code>）移植到另一种架构（如<code>ARM</code>等）</p>
-<p>影响范围：通常需要调整内核体系结构相关的代码</p>
-<div class="note note-info">
-            <p>通常由芯片原厂进行</p>
-          </div>
-
-<h4 id="内核体系结构都涉及哪些代码？"><a href="#内核体系结构都涉及哪些代码？" class="headerlink" title="内核体系结构都涉及哪些代码？"></a>内核体系结构都涉及哪些代码？</h4><h3 id="BSP移植"><a href="#BSP移植" class="headerlink" title="BSP移植"></a>BSP移植</h3><h4 id="BSP是什么？"><a href="#BSP是什么？" class="headerlink" title="BSP是什么？"></a>BSP是什么？</h4><p><code>BSP</code>是<code>board support package</code>的缩写，也就是板级支持包，其主要作用是可以将硬件和<code>Linux</code>内核连接起来</p>
-<p>也就是说：<code>BSP</code>提供了<code>Linux</code>内核可以在硬件上跑起来的所有环境，包括设备树，驱动等</p>
-<h4 id="BSP移植的内容"><a href="#BSP移植的内容" class="headerlink" title="BSP移植的内容"></a>BSP移植的内容</h4><p>将<code>Linux</code>内核移植到一个新的开发板或嵌入式设备上</p>
-<p>影响范围：新硬件的驱动，设备树，引导加载程序等</p>
-<div class="note note-info">
-            <p>通常由板卡厂商来进行</p>
-          </div>
-
-<h3 id="平台移植"><a href="#平台移植" class="headerlink" title="平台移植"></a>平台移植</h3><p>将<code>Linux</code>内核从一个特定硬件平台移植到另一个特定硬件平台</p>
-<p>影响范围：设备树文件或配置，外设删减，引脚复用等</p>
-<div class="note note-info">
-            <p>通常由终端客户进行</p>
-          </div>
-
-<h2 id="烧录"><a href="#烧录" class="headerlink" title="烧录"></a>烧录</h2><p>嵌入式的板卡，一般除了运行内存<code>RAM</code>之外，还会有焊接在板子上的，称为<code>eMMC</code>的<code>NAND</code>闪存（就是通常意义上的磁盘）</p>
-<p>运行内存的部分特殊区域，会直接映射到<code>eMMC</code>上，当然也会有其他设备的寄存器区域，详细信息需要查看板卡的<code>Reference Manual</code>，其中有一章<code>Memory Map</code>，讲述了内存的布局</p>
-<p>板卡复位后，会从指定的地址（这个地址往往是板卡厂商预设好的）开始执行，也就是<code>bootstrap</code>阶段，这个在传统PC上就是执行<code>BIOS</code>代码的地方，这个阶段会初始化一些基本的硬件组件，比如时钟，<code>DDR(内存)</code>，等，然后检测启动设备，比如从<code>SD</code>卡启动，从<code>eMMC</code>启动等</p>
-<p>以<code>eMMC</code>为例，接着就是读取<code>eMMC</code>中的<code>uboot</code>，<code>uboot</code>负责加载内核镜像和设备树，接着交给内核执行，内核读取根文件系统，启动完成</p>
-<p>通过上面的分析，<code>bootstrap</code>阶段的代码是芯片厂商内置在<code>ROM</code>中的，这个代码不需要我们插手，嵌入式工程师需要关注的有四个部分：</p>
-<ol>
-<li>引导加载器<code>uboot</code></li>
-<li>内核<code>image</code></li>
-<li>设备树<code>dtb</code></li>
-<li>根文件系统<code>ramdisk</code></li>
-</ol>
-<p>其中引导加载器主要负责初始化硬件，然后加载内核，设备树，根文件系统，之后将执行流交给内核（注意，<code>uboot</code>只是加载设备树和根文件到内存中，具体对它们的解析是由内核完成的，<code>uboot</code>只是将其在内存中的地址传给内核）</p>
-<p>内核也就是操作系统本身</p>
-<p>设备树用来告诉内核，你有哪些硬件可以使用，硬件规格是什么</p>
-<p>根文件系统则放置了一些基本的命令，你可以通过根文件系统里面的<code>shell</code>和内核进行交互(没有根文件系统的内核，没有交互可言)</p>
-<div class="note note-light">
-            <p>发现了么？所谓的启动，至少要有三次，一次是<code>BIOS</code>代码，一次是<code>uboot</code>（服务器上可能是<code>grub</code>等），一次是内核。并且它们都要初始化硬件</p><p>比如<code>BIOS</code>至少要初始化时钟和<code>DDR</code>（没有<code>DDR</code>都没法去执行<code>uboot</code>了，所有的可执行代码都要放在内存上才能执行）</p><p><code>uboot</code>要初始化比如时钟，串口<code>UART</code>，网卡<code>ENET</code>等硬件，然后加载内核</p><p>在内核中，也要初始化硬件，这次是内核要用到的所有硬件（硬件信息从设备树中获取）</p><p>其中内核初始化后的硬件功能最完整，最强大，前面两个阶段的硬件初始化只是为内核打地基（比如<code>uboot</code>不会初始化<code>PCIE</code>相关的硬件，因为<code>uboot</code>用不到）</p>
-          </div>
-
-<p>那么，终于回到本章主题，所谓烧录就是指，将上面讨论的那四个组件，写入到嵌入式板卡的持久化存储设备中（常见是<code>eMMC</code>）</p>
-<p>目标定下了，途径也可以是多种多样的，常见的有<code>OTG</code>烧录，网络烧录，<code>SD</code>卡烧录，<code>JTAG</code>烧录等</p>
-<p>现在来考虑，一个裸机的嵌入式板卡，除了固件里面有一段<code>BIOS</code>代码之外，其余什么都没有，而焊接在板卡上的<code>eMMC</code>是块设备，使用它的前提是对块设备进行分区（通常使用<code>fdisk, parted</code>等），并对其分区格式化好某种文件系统（<code>mkfs.vfat, mkfs.ext3</code>等）</p>
-<div class="note note-info">
-            <p>比如启动分区（内核镜像，设备树等内容所在的分区）一般是<code>FAT32</code><br>根文件系统的分区一般是<code>ext3</code>，<code>ext4</code>等<br>顺便一提，<code>fdisk</code>只能格式化为<code>DOS</code>分区，也就是<code>MBR</code>主引导目录格式</p><p><code>parted</code>可以格式化为<code>GPT</code>分区</p>
-          </div>
-
-<p>请注意，格式化磁盘一般是操作系统才有的功能，而嵌入式板子上的<code>eMMC</code>是焊接在板子上的，你也不可能把它取下来，挂载在一个<code>Linux</code>&#x2F;<code>Windows</code>&#x2F;<code>Mac</code>上对其进行格式化，这就需要一些巧妙的方式，接下来我们一一道来。</p>
-<h3 id="OTG烧录"><a href="#OTG烧录" class="headerlink" title="OTG烧录"></a>OTG烧录</h3><p>所谓<code>OTG</code>就是<code>USB On - The - Go(OTG)</code>技术允许设备在没有主机（如计算机）的情况下，直接进行设备间的数据传输。在 OTG 烧录中，通常是将具备 OTG 功能的嵌入式设备与存储有镜像文件的 USB 存储设备（如 U 盘）直接连接，或者与另一台作为烧录主机的设备连接。嵌入式设备通过内置的 OTG 驱动程序识别 USB 存储设备，并从中读取镜像文件，然后按照预设的烧录流程将镜像写入自身的存储介质中。</p>
-<div class="note note-light">
-            <p><code>OTG</code>需要硬件支持，即：</p><ol><li>开发板需要支持<code>OTG</code></li><li>开发板连接到主机</li><li>主机有<code>OTG</code>驱动程序和相关依赖库</li></ol>
-          </div>
-
-<p>一般的操作是：连接开发板，直接将一份镜像（包括<code>uboot</code>，<code>image</code>，<code>dtb</code>，<code>ramdisk</code>）通过<code>OTG</code>放入<strong>嵌入式设备的内存</strong>中，然后启动这个跳转到这个<code>image</code>启动，这样开发板上就有了一个操作系统可用，就可以直接用这个操作系统格式化好<code>eMMC</code>，然后把要烧录进板子的镜像拷贝到<code>eMMC</code>上，就烧录好了，再次启动时，<code>BIOS</code>从<code>eMMC</code>启动，就可以启动拷贝进来的系统了</p>
-<p>格式化<code>eMMC</code>一般会分两个分区，一个<code>boot</code>分区，一个文件系统分区，<code>boot</code>分区中存放内核，设备树，文件系统分区存放根文件系统</p>
-<p>在<code>eMMC</code> 上，<code>uboot</code>所在的分区一般是写保护的，如果你想要写这个分区，需要先打开写保护（把只读关掉）</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment"># 这里的boot0就是eMMC特有的启动分区，eMMC的每一个硬件分区都是独立编址的</span><br><span class="hljs-built_in">echo</span> 0 &gt; /sys/block/mmcblkxxxboot0/force_ro<br></code></pre></td></tr></table></figure>
-
-<p>下面开始拷贝镜像，先是<code>uboot</code>，拷贝到<code>eMMC</code>的<code>boot0</code>分区里面</p>
-<p>然后格式化<code>boot</code>分区，将其格式化为<code>FAT32</code>，挂载该分区，然后放入内核镜像和设备树，卸载该分区</p>
-<p>最后格式化文件系统分区，将其格式化为<code>ext3/4</code>，挂载该分区，然后放入根文件系统，以及可能需要到的内核模块，卸载该分区</p>
-<p>这时，开发板已经烧录好系统了</p>
-<h3 id="SD卡烧录"><a href="#SD卡烧录" class="headerlink" title="SD卡烧录"></a>SD卡烧录</h3><p>首先准备一个<code>SD</code>卡，先将其<code>fdisk</code>进行分区，并将其格式化为<code>FAT32</code>，然后将一个格式化板卡<code>eMMC</code>的镜像（引导固件），和要烧写到板卡上的镜像（烧写在板卡上的操作系统），都拷贝到这个<code>SD</code>卡中</p>
-<p>板卡设定为从<code>SD</code>卡启动，然后会首先去读取<code>uboot</code>，<code>uboot</code>去加载内核和设备树，挂载根文件系统，此时一个操作系统已经启动了，就可以用这个操作系统将要烧写的镜像拷贝到<code>eMMC</code>中了（和上面<code>OTG</code>步骤一样，先格式化<code>eMMC</code>，然后拷贝）</p>
+                <h1 id="Shell"><a href="#Shell" class="headerlink" title="Shell"></a>Shell</h1><h2 id="变量tips"><a href="#变量tips" class="headerlink" title="变量tips"></a>变量tips</h2><ul>
+<li><p>定义变量时，等号周围不能有空格；</p>
+</li>
+<li><p>定义变量中不能有空格；</p>
+</li>
+<li><p>变量使用时，前面要加$；</p>
+</li>
+<li><p>建议使用变量时将变量用花括号括起来；</p>
+</li>
+<li><p>只读变量可以在变量前加readonly</p>
+<ul>
+<li><pre><code class="language-shell">#!/bin/bash
+myUrl=&quot;https://www.google.com&quot;
+readonly myUrl
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p>删除变量可以使用unset，变量被删除后不能再次使用，unset不能删除只读变量；</p>
+</li>
+</ul>
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><ul>
+<li><p>单引号字符串里任何字符都会原样输出，单引号字符串中变量是无效的；</p>
+</li>
+<li><p>单引号字符串中不能出现单独的一个单引号，加转义字符也不行；</p>
+</li>
+<li><p>双引号里可以有变量；</p>
+</li>
+<li><p>双引号里可以出现转义字符；</p>
+</li>
+<li><p>获取字符串长度<code>string=&quot;abcd&quot;</code> <code>echo $&#123;#string&#125;</code>,即表示变量的<code>$</code>符号后加一个<code>#</code></p>
+</li>
+<li><p>提取子字符串</p>
+<ul>
+<li><pre><code class="language-shell">string=&quot;runoob is a great site&quot;
+echo $&#123;string:1:4&#125; # 输出 unoo
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><ul>
+<li>数组元素间用空格分割；</li>
+<li>取数组元素<code>$&#123;数组名[下标]&#125;</code>；</li>
+<li>取数组所有元素<code>$&#123;数组名[@]&#125;</code>；</li>
+<li>获取数组长度<code>$&#123;#数组名[@]&#125;</code>；</li>
+</ul>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><ul>
+<li><p><code>#</code>表示注释；</p>
+</li>
+<li><pre><code class="language-shell">#多行注释
+:&lt;&lt;EOF
+注释内容。。。
+EOF
+##或者
+:&lt;&lt;&#39;
+...
+&#39;
+##或者
+:&lt;&lt;!
+...
+!
+</code></pre>
+</li>
+</ul>
+<h2 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h2><ul>
+<li><p>向脚本传递参数，脚本内使用的格式为<code>$n</code>，n代表第几个参数，<code>$1</code>表示第一个参数；</p>
+</li>
+<li><p><code>$0</code>表示执行的文件名，包含文件路径；</p>
+</li>
+<li><p><code>$#</code>表示传递到脚本参数的个数；</p>
+</li>
+<li><p><code>$*</code>以一个单字符串的形式显示所有向脚本传递的参数；</p>
+</li>
+<li><p><code>$$</code>脚本运行的当前进程的ID号；</p>
+</li>
+<li><p><code>$!</code>后台运行的最后一个进程的ID号；</p>
+</li>
+<li><p><code>$@</code>与<code>$*</code>相同，但是使用时加引号，并在引号中返回每个参数(不是单字符串了)</p>
+<ul>
+<li>如<code>使用&quot;$@&quot;则返回&quot;$1&quot; &quot;$2&quot; … &quot;$n&quot;</code></li>
+</ul>
+</li>
+<li><p><code>$-</code>显示Shell使用的当前选项；</p>
+</li>
+<li><p><code>$?</code>显示最后命令的退出状态；</p>
+</li>
+</ul>
+<h2 id="运算"><a href="#运算" class="headerlink" title="运算"></a>运算</h2><ul>
+<li><p>要进行数学运算，需要使用斜点<code>val=expr 2 + 2</code></p>
+</li>
+<li><p>表达式和运算符之间要有空格，这点要区分变量赋值，变量赋值等号周围不能加空格；</p>
+</li>
+<li><p>方括号[ ]等价与test，方括号周边要加空格；</p>
+</li>
+<li><p>乘号前面必须要加反斜杠<code>[ $a \* $b ]</code>；</p>
+</li>
+<li><p>布尔运算：</p>
+<ul>
+<li><code>!</code>取非；</li>
+<li><code>-o</code>取或；</li>
+<li><code>-a</code>取与；</li>
+</ul>
+</li>
+<li><p>逻辑运算：</p>
+<ul>
+<li><code>&amp;&amp;</code>逻辑与；</li>
+<li><code>||</code>逻辑或；</li>
+</ul>
+</li>
+<li><p>字符串运算：</p>
+<ul>
+<li><code>=</code>检查字符串相等；</li>
+<li><code>!=</code>检查字符串不等；</li>
+<li><code>-z</code>检查字符串长度是否为0，为0返回true；</li>
+<li><code>-n</code>检查字符串是否不为0，不为0返回true；</li>
+<li><code>$</code>检测字符串是否为空，不为空返回true；</li>
+</ul>
+</li>
+<li><p>文件测试：</p>
+<ul>
+<li><code>-b file</code>检查文件是否为块设备，是则返回true；</li>
+<li><code>-c file</code>检查文件是否是字符设备，是则返回true；</li>
+<li><code>-d file</code>检查文件是否是目录，是则返回true；</li>
+<li><code>-f file</code>检查文件是否是普通文件，是则返回true；</li>
+<li><code>-g file</code>检查文件是否设置了SGID位，是则返回true；</li>
+<li><code>-k file</code>检查文件是否设置了粘着位sticky bit，是则返回true；</li>
+<li><code>-p file</code>检查文件是否是有名管道，是则返回true；</li>
+<li><code>-u file</code>检查文件是否设置了SUID位，是则返回true；</li>
+<li><code>-r file</code>检查文件是否可读，是则返回true；</li>
+<li><code>-w file</code>检查文件是否可写，是则返回true；</li>
+<li><code>-x file</code>检查文件是否可执行，是则返回true；</li>
+<li><code>-s file</code>检查文件是否为空(文件大小是否大于0)，不为空则返回true；</li>
+<li><code>-e file</code>检测文件(包括目录)是否存在，是则返回true；</li>
+<li><code>-S</code>判断文件是否是socket；</li>
+<li><code>-L</code>检测文件是否存在合并是一个符号链接；</li>
+</ul>
+</li>
+</ul>
+<h2 id="命令行展开"><a href="#命令行展开" class="headerlink" title="命令行展开"></a>命令行展开</h2><p><code>&#123;&#125;</code>会在脚本中展开表达式，<code>..</code>表示递归，第三位表示步长</p>
+<p> 如：</p>
+<p><code>&#123;1..5&#125;</code>展开就是<code>1 2 3 4 5</code></p>
+<p><code>&#123;1..5..2&#125;</code>展开就是<code>1 3 5</code></p>
+<h2 id="别名"><a href="#别名" class="headerlink" title="别名"></a>别名</h2><p><code>alias</code>为某命令产生一个别名</p>
+<p><code>unalias</code>取消这个别名</p>
+<h2 id="历史命令"><a href="#历史命令" class="headerlink" title="历史命令"></a>历史命令</h2><p><code>history</code>会展示之前的历史命令，命令前有编号</p>
+<p><code>&#123;!num&#125;</code>运行history中对应数字的命令</p>
+<p><code>&#123;!!&#125;</code>运行上一条命令</p>
+<h2 id="快捷键"><a href="#快捷键" class="headerlink" title="快捷键"></a>快捷键</h2><p><code>^</code>表示<code>CTRL</code>键</p>
+<p><code>^A</code>移动光标到行首</p>
+<p><code>^E</code>移动光标到行尾</p>
+<p><code>^U</code>剪切这一行</p>
+<p><code>^K</code>剪切光标之后的所有内容</p>
+<p><code>^Y</code>粘贴之前剪切的内容</p>
+<p><code>^L</code>等同于clear，清屏</p>
+<p><code>^D</code>退出当前程序，正常退出</p>
+<p><code>^C</code>退出当前程序，非正常退出</p>
+<p><code>^Z</code>暂停（挂起）当前程序，并放入后台</p>
+<p><code>^S</code>暂停屏幕输出</p>
+<p><code>^Q</code>恢复屏幕输出</p>
+<p><code>^R</code>在历史命令中搜索</p>
+<h2 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h2><h3 id="元字符"><a href="#元字符" class="headerlink" title="元字符"></a>元字符</h3><h4 id="基本正则字符"><a href="#基本正则字符" class="headerlink" title="基本正则字符"></a>基本正则字符</h4><p><code>^</code>：行首</p>
+<p><code>$</code>：行尾</p>
+<p><code>[]</code>：选字，如<code>[abc]</code>则为abc中的任意一个，还可以范围匹配<code>[a-c]</code>，表示abc</p>
+<p><code>*</code>：任意字符，包括空，出现任意次</p>
+<p><code>.</code>：任意一个字符（非换行），有且只有一个</p>
+<h4 id="扩展正则字符"><a href="#扩展正则字符" class="headerlink" title="扩展正则字符"></a>扩展正则字符</h4><p><code>()</code>：分组，被其包裹的部分是一个整体，并获取这个匹配，可以在后面使用</p>
+<p><code>&#123;&#125;</code>：匹配前一个分组的某些次数</p>
+<p><code>?</code>：前一个字符的零次或一次，若前面是一个限制符时，匹配模式是非贪婪的（即尽可能匹配少的字符）</p>
+<p><code>+</code>：前面一个字符的一次及以上</p>
+<p><code>|</code>：表示或者，同时过滤多个字符串</p>
+<p><code>\</code>：转义字符（escape char），跟在其后的，表示其字符本身含义，而不是其正则含义，或者将普通字符转义为特殊字符</p>
+<p><code>\b</code>：匹配一个单词边界，也就是单词和空格间的位置</p>
+<p><code>\B</code>：匹配非单词边界</p>
+<p><code>\cx</code>：匹配由x指明的控制字符，如<code>\cM</code>匹配<code>^M</code>，x必须是字母</p>
+<p><code>\d</code>：匹配一个数字</p>
+<p><code>\D</code>：匹配一个非数字</p>
+<p><code>\f</code>：匹配一个换页符，等价于<code>\x0c</code>和<code>\cL</code></p>
+<p><code>\n</code>：匹配一个换行符，等价于<code>\x0a</code>和<code>\cJ</code></p>
+<p><code>\r</code>：匹配一个回车符，等价于<code>\x0d</code>和<code>\cM</code></p>
+<p><code>\s</code>：匹配一个空白字符，包括空格，制表，换页等</p>
+<p><code>\S</code>：匹配任何非空白符</p>
+<p><code>\t</code>：匹配一个制表符</p>
+<p><code>\v</code>：匹配一个垂直制表符</p>
+<p><code>\w</code>：匹配字母，数字，下划线（如c语言中合法的变量名）</p>
+<p><code>\W</code>：匹配非字母，数字，下划线</p>
+<p><code>\xn</code>：匹配n，其中n是16进制转义值，必须为两个字符</p>
+<p><code>\num</code>：匹配num，其中num是一个正整数，是对所获取的匹配的引用，如<code>(.)\1</code>匹配两个连续的相同字符</p>
+<p><code>\n</code>：n是一个数字，标识一个8进制转义值或一个向后引用。如果<code>\n</code>之前有至少n个获取的子表达式，则n为向后引用，否则，如果n为八进制数字，则n为一个八进制转义值</p>
+<p><code>\nm</code>：n，m都是一个数字，标识一个八进制转义值，或者一个向后引用，最多到99</p>
+<p><code>\nml</code>：匹配八进制数字，如<code>n</code>为<code>0-3</code>，<code>m</code>和<code>l</code>为<code>0-7</code>，则匹配八进制转义值<code>nml</code></p>
+<p><code>\un</code>：匹配n，其中n是四个16进制数字表示的Unicode字符，如<code>\u00A9</code>表示<code>？</code></p>
+<h4 id="组合字符"><a href="#组合字符" class="headerlink" title="组合字符"></a>组合字符</h4><p><code>^$</code>：表示空行（啥也没有）</p>
+<p><code>.*</code>：匹配至少一个的所有内容，没有空</p>
+<p><code>^.*</code>：匹配任意多个字符开头</p>
+<p><code>.*$</code>：匹配任意多个字符结尾</p>
+<p><code>[^abc]</code>：反选，匹配非abc的任意字符</p>
+<p><code>a&#123;n, m&#125;</code>：匹配前一个分组的至少n次，至多m次，如<code>a&#123;1, 3&#125;</code>，匹配 <code>a</code>，<code>aa</code>，<code>aaa</code></p>
+<p><code>a&#123;n, &#125;</code>：匹配前一个分组的至少n次，至多不限</p>
+<p><code>a&#123;, m&#125;</code>：匹配前一个分组的至多m次，至少不限</p>
+<p><code>a&#123;n&#125;</code>：匹配前一个分组正好n次</p>
+<p><code>(?:pattern)</code>：匹配，但不获取这个匹配结果</p>
+<p><code>(?=pattern)</code>：正向肯定预查，在任何匹配pattern的字符串处匹配查找字符串</p>
+<p><code>(?!pattern)</code>：正向否定预查，在任何不匹配pattern的字符串处匹配查找字符串</p>
+<p><code>(?&lt;=pattern)</code>：反向肯定预查，在任何匹配pattern的字符串处匹配查找字符串，方向和正向相反</p>
+<p><code>(?&lt;!pattern)</code>：反向否定预查，在任何不匹配pattern的字符串处匹配查找字符串，方向和正向相反</p>
+<p><code>[]+</code>：方括号内的内容的一次或多次</p>
+<p><code>&lt;&gt;</code>：定位单词的左侧和右侧</p>
+<h4 id="字符簇"><a href="#字符簇" class="headerlink" title="字符簇"></a>字符簇</h4><p><code>[[:alpha:]]</code>：任何字母</p>
+<p><code>[[:digit:]]</code>：任何数字</p>
+<p><code>[[:alnum:]]</code>：任何字母和数字</p>
+<p><code>[[:space:]]</code>：任何空白字符</p>
+<p><code>[[:upper:]]</code>：任何大写字母</p>
+<p><code>[[:lower:]]</code>：任何小写字母</p>
+<p><code>[[:punct:]]</code>：任何标点符号</p>
+<p><code>[[:xdigit:]]</code>：任何16进制的数字</p>
+<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><p>相同优先级的从左到右运算，不同优先级的先高后低</p>
+<table>
+<thead>
+<tr>
+<th align="center">运算符</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>\</code></td>
+<td align="center">转义符</td>
+</tr>
+<tr>
+<td align="center"><code>(), (?:), (?=), []</code></td>
+<td align="center">圆括号与方括号</td>
+</tr>
+<tr>
+<td align="center"><code>*, +, ?, &#123;n&#125;, &#123;n,&#125;,&#123;n,m&#125;,&#123;,m&#125;</code></td>
+<td align="center">限定符</td>
+</tr>
+<tr>
+<td align="center"><code>^, $, \任何元字符、任何字符</code></td>
+<td align="center">定位点和序列</td>
+</tr>
+<tr>
+<td align="center">&#96;</td>
+<td align="center">&#96;</td>
+</tr>
+</tbody></table>
+<h3 id="修饰符"><a href="#修饰符" class="headerlink" title="修饰符"></a>修饰符</h3><p><code>i</code>：忽略大小写</p>
+<p><code>g</code>：全局匹配</p>
+<p><code>m</code>：多行匹配</p>
+<p><code>s</code>：<code>.</code>中包含换行<code>\n</code></p>
 
                 
               </div>
@@ -370,7 +545,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/" class="category-chain-item">嵌入式</a>
+  <a href="/categories/%E8%84%9A%E6%9C%AC%E8%AF%AD%E8%A8%80/" class="category-chain-item">脚本语言</a>
   
   
 
@@ -385,9 +560,11 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/" class="print-no-link">#嵌入式</a>
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
       
-        <a href="/tags/Linux%E5%86%85%E6%A0%B8%E7%A7%BB%E6%A4%8D/" class="print-no-link">#Linux内核移植</a>
+        <a href="/tags/%E8%84%9A%E6%9C%AC%E8%AF%AD%E8%A8%80/" class="print-no-link">#脚本语言</a>
+      
+        <a href="/tags/shell/" class="print-no-link">#shell</a>
       
     </div>
   
@@ -399,8 +576,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>嵌入式Linux内核移植两三事</div>
-      <div>https://yill-z.github.io/2025/01/01/嵌入式Linux内核移植两三事/</div>
+      <div>shell语言详解</div>
+      <div>https://yill-z.github.io/2025/01/01/shell/</div>
     </div>
     <div class="license-meta">
       
@@ -444,15 +621,21 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/01/01/%E5%A6%82%E4%BD%95%E4%B8%BA%E7%A4%BE%E5%8C%BA%E6%8F%90%E4%BA%A4patch/" title="如何为社区提交patch">
+                      <a href="/2025/01/01/docker/" title="docker安装配置">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">如何为社区提交patch</span>
+                        <span class="hidden-mobile">docker安装配置</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2025/01/01/zsh/" title="zsh安装配置">
+                        <span class="hidden-mobile">zsh安装配置</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
