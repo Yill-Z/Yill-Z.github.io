@@ -23,18 +23,20 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="如何为社区提交patch">
 <meta property="og:url" content="https://yill-z.github.io/2025/01/01/%E5%A6%82%E4%BD%95%E4%B8%BA%E7%A4%BE%E5%8C%BA%E6%8F%90%E4%BA%A4patch/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Yill&#39;s tech cabin.">
 <meta property="og:description" content="如何为linux社区提交patch">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-01-01T12:00:00.000Z">
-<meta property="article:modified_time" content="2025-01-05T13:45:11.120Z">
+<meta property="article:modified_time" content="2025-01-06T14:03:41.495Z">
 <meta property="article:author" content="Yill Zhang">
 <meta property="article:tag" content="Linux">
 <meta name="twitter:card" content="summary_large_image">
   
   
+    <meta name="referrer" content="no-referrer-when-downgrade">
   
-  <title>如何为社区提交patch - Hexo</title>
+  
+  <title>如何为社区提交patch - Yill&#39;s tech cabin.</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -98,7 +100,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>Yill&#39;s tech blog.</strong>
+      <strong>Yill&#39;s tech cabin.</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -241,6 +243,15 @@
 
     
     
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
   </div>
 
 
@@ -294,15 +305,15 @@
 <p><strong>一种例外</strong>：当你仅仅是移动一段代码从一个文件到另一个地方，那么你的patch应该保持干净，这个patch应该仅有移动的动作。</p>
 <p><strong>代码风格检查脚本</strong>：<code>scripts/checkpatch.pl</code></p>
 <h2 id="选择patch的接受人"><a href="#选择patch的接受人" class="headerlink" title="选择patch的接受人"></a>选择patch的接受人</h2><p><strong>发现MAINTAINERS的脚本</strong>：<code>scripts/get_maintainer.pl</code></p>
-<p><strong>实在找不到MAINTAINERS</strong>：找  Andrew Morton (<a href="mailto:&#97;&#107;&#112;&#x6d;&#x40;&#x6c;&#x69;&#110;&#x75;&#x78;&#45;&#x66;&#111;&#x75;&#110;&#100;&#x61;&#116;&#x69;&#111;&#110;&#46;&#x6f;&#x72;&#103;">akpm@linux-foundation.org</a>)</p>
-<p><strong>选择一个邮件列表</strong>：<a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#45;&#107;&#101;&#x72;&#x6e;&#101;&#x6c;&#x40;&#x76;&#103;&#101;&#x72;&#46;&#107;&#x65;&#x72;&#x6e;&#101;&#108;&#x2e;&#x6f;&#114;&#103;">linux-kernel@vger.kernel.org</a> 是最后的手段（这个内容太多了），通常你应该在MAINTAINERS文件中找特定子系统的邮件列表，你的补丁可以获得更多关注，但是<em>不要向无关的列表发送垃圾邮件</em>。</p>
+<p><strong>实在找不到MAINTAINERS</strong>：找  Andrew Morton (<a href="mailto:&#97;&#107;&#x70;&#x6d;&#64;&#x6c;&#x69;&#110;&#x75;&#x78;&#x2d;&#x66;&#111;&#117;&#x6e;&#x64;&#x61;&#x74;&#x69;&#111;&#110;&#46;&#111;&#114;&#x67;">akpm@linux-foundation.org</a>)</p>
+<p><strong>选择一个邮件列表</strong>：<a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#x2d;&#107;&#x65;&#x72;&#110;&#x65;&#x6c;&#x40;&#118;&#103;&#101;&#114;&#x2e;&#x6b;&#x65;&#x72;&#110;&#101;&#108;&#46;&#111;&#114;&#103;">linux-kernel@vger.kernel.org</a> 是最后的手段（这个内容太多了），通常你应该在MAINTAINERS文件中找特定子系统的邮件列表，你的补丁可以获得更多关注，但是<em>不要向无关的列表发送垃圾邮件</em>。</p>
 <p><strong>不要一次发送超过15个邮件！！！！</strong></p>
-<p><strong>安全相关的patch</strong>：如果你修复了一个安全相关的bug，发送邮件到<a href="mailto:&#115;&#x65;&#99;&#x75;&#114;&#105;&#x74;&#x79;&#64;&#107;&#101;&#114;&#x6e;&#101;&#108;&#x2e;&#x6f;&#x72;&#x67;">security@kernel.org</a>，修复一个发行版的严重bug时，需要同时抄送到stable maintainers。</p>
+<p><strong>安全相关的patch</strong>：如果你修复了一个安全相关的bug，发送邮件到<a href="mailto:&#115;&#x65;&#x63;&#117;&#x72;&#x69;&#116;&#121;&#x40;&#x6b;&#101;&#114;&#110;&#x65;&#108;&#x2e;&#111;&#x72;&#103;">security@kernel.org</a>，修复一个发行版的严重bug时，需要同时抄送到stable maintainers。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">Cc: stable@vger.kernel.org<br></code></pre></td></tr></table></figure>
 
 <p><strong>添加Sign-off</strong></p>
-<p><strong>如果你的修改涉及内核用户态</strong>：发送一个man-page patch到MAN-PAGES的MAINTAINERS，或者至少发送一个更改通知，用户空间的API修改也应该备份到<a href="mailto:&#x6c;&#x69;&#110;&#117;&#120;&#x2d;&#x61;&#112;&#105;&#64;&#118;&#103;&#101;&#x72;&#46;&#107;&#x65;&#114;&#110;&#x65;&#108;&#x2e;&#111;&#x72;&#x67;">linux-api@vger.kernel.org</a>。</p>
-<p><strong>一些琐碎的patch</strong>：也许你可以抄送到Trivial Patch Monkey<a href="mailto:&#x74;&#114;&#105;&#118;&#105;&#97;&#108;&#64;&#x6b;&#x65;&#114;&#110;&#101;&#x6c;&#x2e;&#x6f;&#x72;&#103;">trivial@kernel.org</a>。</p>
+<p><strong>如果你的修改涉及内核用户态</strong>：发送一个man-page patch到MAN-PAGES的MAINTAINERS，或者至少发送一个更改通知，用户空间的API修改也应该备份到<a href="mailto:&#x6c;&#105;&#x6e;&#117;&#x78;&#45;&#97;&#112;&#105;&#64;&#x76;&#x67;&#101;&#x72;&#x2e;&#x6b;&#x65;&#114;&#110;&#101;&#108;&#x2e;&#111;&#x72;&#x67;">linux-api@vger.kernel.org</a>。</p>
+<p><strong>一些琐碎的patch</strong>：也许你可以抄送到Trivial Patch Monkey<a href="mailto:&#x74;&#x72;&#x69;&#118;&#105;&#x61;&#x6c;&#x40;&#107;&#101;&#114;&#x6e;&#101;&#x6c;&#x2e;&#x6f;&#x72;&#x67;">trivial@kernel.org</a>。</p>
 <h2 id="邮件大小"><a href="#邮件大小" class="headerlink" title="邮件大小"></a>邮件大小</h2><p><strong>当你的邮件大小超过300k</strong>：不要将过大的邮件发送到邮件列表和maintainers，超过300k的邮件更好的方法是将你的patch放在服务器上，并且提供一个URL指向你的patch。特别注意：如果你的patch超过300k，几乎可以确定它需要分解。</p>
 <h2 id="响应审查评论"><a href="#响应审查评论" class="headerlink" title="响应审查评论"></a>响应审查评论</h2><p><strong>忽略评审人是一个被评审人忽略的好办法</strong>：不会带来代码更改的评论或问题几乎肯定会带来评论或者日志的更改，以便于下一个评审人更好的理解发生了什么。</p>
 <h2 id="保持耐心"><a href="#保持耐心" class="headerlink" title="保持耐心"></a>保持耐心</h2><p><strong>评审人很忙</strong>：在确保发送到执行位置后，耐心等待至少一周。</p>
@@ -743,6 +754,8 @@
   <script>Fluid.plugins.imageCaption();</script>
 
   <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
 
 
 
