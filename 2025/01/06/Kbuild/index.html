@@ -1,0 +1,1240 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/Yill.jpg">
+  <link rel="icon" href="/img/Yill.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yill Zhang">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Kbuild机制详解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kbuild那些事儿">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/06/Kbuild/index.html">
+<meta property="og:site_name" content="Yill&#39;s tech cabin.">
+<meta property="og:description" content="Kbuild机制详解">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-06T15:13:28.000Z">
+<meta property="article:modified_time" content="2025-01-06T15:20:08.770Z">
+<meta property="article:author" content="Yill Zhang">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Kbuild">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Kbuild那些事儿 - Yill&#39;s tech cabin.</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yill-z.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yill&#39;s tech cabin.</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/universal.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Kbuild那些事儿"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-01-06 23:13" pubdate>
+          2025年1月6日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          90 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Kbuild那些事儿</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Kbuild机制梳理"><a href="#Kbuild机制梳理" class="headerlink" title="Kbuild机制梳理"></a>Kbuild机制梳理</h1><h2 id="Makefile的执行顺序"><a href="#Makefile的执行顺序" class="headerlink" title="Makefile的执行顺序"></a>Makefile的执行顺序</h2><ol>
+<li>读入所有include的makefile（include时会对include命令后面的变量与通配符进行扩展，然后试着读入该Makefile，如果成功就继续，如果失败就报告，并继续读取其余makefile。直到所有读取全部完成后，查看规则中是否有更新该Makefile的规则，如果有，就更新目标，然后重新读入该Makefile。不断重复以上流程，直到所有更新Makefile的规则都被执行后，仍不存在该Makefile，就报错退出）</li>
+<li>初始化变量</li>
+<li>分析规则，将其加入依赖链</li>
+<li>根据依赖，决定哪些目标需要生成</li>
+<li>执行生成命令</li>
+</ol>
+<h2 id="命令脚本初始化顺序"><a href="#命令脚本初始化顺序" class="headerlink" title="命令脚本初始化顺序"></a>命令脚本初始化顺序</h2><ol>
+<li>读取命令脚本</li>
+<li>扩展变量（执行的时候才会扩展，然而目标的变量扩展会在构建规则链时）</li>
+<li>对Make表达式求值（宏被扩展时，会为每一行增加Tab）</li>
+<li>执行</li>
+</ol>
+<ul>
+<li>tips：注意区分Make表达式和shell表达式，shell表达式会在bash执行时求值</li>
+</ul>
+<h2 id="Kbuild相关文件的作用"><a href="#Kbuild相关文件的作用" class="headerlink" title="Kbuild相关文件的作用"></a>Kbuild相关文件的作用</h2><table>
+<thead>
+<tr>
+<th align="center">文件名</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Makefile</td>
+<td align="center">顶层Makefile，执行的根目录</td>
+</tr>
+<tr>
+<td align="center">scritps&#x2F;basic&#x2F;Makefile</td>
+<td align="center">词法分析fixdep</td>
+</tr>
+<tr>
+<td align="center">scripts&#x2F;Kbuild.include</td>
+<td align="center">常用函数</td>
+</tr>
+<tr>
+<td align="center">scritps&#x2F;Makefile.userprogs</td>
+<td align="center">用户程序处理</td>
+</tr>
+<tr>
+<td align="center">scripts&#x2F;Makefile.lib</td>
+<td align="center">常用变量的定义</td>
+</tr>
+<tr>
+<td align="center">scripts&#x2F;Makefile.host</td>
+<td align="center">本地程序编译HOSTCC</td>
+</tr>
+<tr>
+<td align="center">arch&#x2F;x86&#x2F;Makefile</td>
+<td align="center">架构Makefile</td>
+</tr>
+<tr>
+<td align="center">arch&#x2F;x86&#x2F;boot&#x2F;Makefile</td>
+<td align="center">架构的启动Makefile</td>
+</tr>
+<tr>
+<td align="center">arch&#x2F;x86&#x2F;kernel&#x2F;Makefile</td>
+<td align="center">单目录下的Makefile</td>
+</tr>
+<tr>
+<td align="center">arch&#x2F;x86&#x2F;boot&#x2F;compressed&#x2F;Makefile</td>
+<td align="center">压缩后的Makefile</td>
+</tr>
+</tbody></table>
+<h2 id="prepare依赖关系"><a href="#prepare依赖关系" class="headerlink" title="prepare依赖关系"></a>prepare依赖关系</h2><pre><code class=" mermaid">graph LR;
+	prepare--&gt;prepare0;
+	prepare--&gt;prepare-objtool;
+	prepare--&gt;prepare-resolve_btfids;
+	prepare0--&gt;archprepare;
+	archprepare--&gt;outputmakefile;
+	outputmakefile--&gt;源码目录与输出目录不一致时启用;
+	archprepare--&gt;archheaders;
+	archheaders--&gt;产生系统调用表;
+	archprepare--&gt;archscripts;
+	archscripts--&gt;scripts_basic;
+	archscripts--&gt;架构脚本相关;
+	archprepare--&gt;scripts;
+	scripts--&gt;执行scripts目录下的Makefile;
+	scripts--&gt;scripts_basic;
+	scripts--&gt;scripts_dtc;
+	archprepare--&gt;include/config/kernel.release;
+	include/config/kernel.release--&gt;内核发行版本信息;
+	archprepare--&gt;asm-generic;
+	asm-generic--&gt;内核通用头文件;
+	archprepare--&gt;version_h;
+	version_h--&gt;内核版本信息;
+	archprepare--&gt;autoksyms_h;
+	autoksyms_h--&gt;内核符号信息;
+	archprepare--&gt;include/generated/utsrelease.h;
+	include/generated/utsrelease.h--&gt;设备信息;
+	archprepare--&gt;include/generated/autoconf.h;
+	include/generated/autoconf.h--&gt;.config信息;
+</code></pre>
+
+<h2 id="bzImage依赖关系"><a href="#bzImage依赖关系" class="headerlink" title="bzImage依赖关系"></a>bzImage依赖关系</h2><pre><code class=" mermaid">graph LR;
+	bzImage--&gt;vmlinux;
+</code></pre>
+
+
+
+<h1 id="一、config流程"><a href="#一、config流程" class="headerlink" title="一、config流程"></a>一、config流程</h1><p>构建内核，首先需要产生.config文件，.config文件需要在顶层makefile中设置config-build标志，注意区分config-build和need-config两个标志，config-build是构建.config文件，而need-config是指本次构建需要.config的参与，即需要.config中的配置项。</p>
+<p>如果在本次构建中，还有其余目标，如clean目标，single目标，config目标等，则会设置mixed-build标志，即混合构建，此时make会通过__build_one_by_one依次去处理每个目标，而不是在本make中处理所有目标。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">__build_one_by_one:</span><br>	<span class="hljs-variable">$(Q)</span>set -e; \  <span class="hljs-comment">#出错就停止</span><br>	for i in <span class="hljs-variable">$(MAKECMDGOALS)</span>; do \<span class="hljs-comment"># 遍历每个目标</span><br>		<span class="hljs-variable">$(MAKE)</span> -f <span class="hljs-variable">$(srctree)</span>/Makefile $$i; \<span class="hljs-comment">#用顶层makefile去处理每个目标</span><br>	done<br></code></pre></td></tr></table></figure>
+
+<p>而如果不需要混合构建，则进入了真正的重头戏，内核make每次的主要运行流程。</p>
+<p>首先会包含Kbuild.include，这里面有一些通用的全局函数，如build，clean，if_changed等通用函数。dot-target，depfile等通用变量。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">include</span> scripts/Kbuild.<span class="hljs-keyword">include</span><br></code></pre></td></tr></table></figure>
+
+<p>然后通过一个makefile文件来确认当前架构。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">include</span> scripts/subarch.<span class="hljs-keyword">include</span><br><span class="hljs-comment"># 其中的内容就一行，确定SUBARCH</span><br>SUBARCH := <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> uname -m | sed -e s/i.86/x86/ -e s/x86_64/x86/ \</span><br><span class="hljs-variable">				  -e s/sun4u/sparc64/ \</span><br><span class="hljs-variable">				  -e s/arm.*/arm/ -e s/sa110/arm/ \</span><br><span class="hljs-variable">				  -e s/s390x/s390/ -e s/parisc64/parisc/ \</span><br><span class="hljs-variable">				  -e s/ppc.*/powerpc/ -e s/mips.*/mips/ \</span><br><span class="hljs-variable">				  -e s/sh[234].*/sh/ -e s/aarch64.*/arm64/ \</span><br><span class="hljs-variable">				  -e s/riscv.*/riscv/)</span><br></code></pre></td></tr></table></figure>
+
+<p>这里要注意一个特殊的架构，um架构，即user mode，UML这里不是统一建模语言，而是UserMode Linux的缩写，从字面上看，是在用户态运行linux内核，即将内核当作一个应用程序在跑，这样我们就可以用调试应用层程序的方法调试内核了，应用层的强大调试工具gdb就派上用场了。很多时候我们写内核代码，当遇到算法比较复杂但又不涉及底层结构的时候总是喜欢现在应用层实现并调试，然后在写到内核层。为什么，就是因为用户层调试比内核调试方便。但是UML的最大局限性就是不能调试硬件关联性强的代码，但是还是有很多方面可以应用的，比如调度算法、VFS等。</p>
+<p><strong>可以看到，默认的架构是编译内核的架构</strong></p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile">ARCH		?= <span class="hljs-variable">$(SUBARCH)</span><br><br><span class="hljs-comment"># Architecture as present in compile.h</span><br>UTS_MACHINE 	:= <span class="hljs-variable">$(ARCH)</span><br>SRCARCH 	:= <span class="hljs-variable">$(ARCH)</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>HOST：本地编译的一些工具，如HOSTCC，HOSTLD，HOSTCXX等，用来编译本机上的一些工具，如mkproggy，fixdep等</p>
+</blockquote>
+<hr>
+<p>下面开始正式构建.config的流程，首先看.config的定义位置</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile">KCONFIG_CONFIG	?= .config<br><span class="hljs-keyword">export</span> KCONFIG_CONFIG<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，默认是由KCONFIG_CONFIG这个变量名字来定义.config的，并且通过export来使其他makefile文件可以使用本变量。</p>
+<p>下面执行流到真正构建.config的过程，首先顶层makefile定义了一个过程，由ifdef config-build开始，else分支则是不构建.config的执行流程。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> config-build<br><span class="hljs-comment">## 则包含平台相关的makefile</span><br><span class="hljs-comment"># 构建.config肯定要使用架构相关的信息，因此首先包含架构中的Makefile文件</span><br><span class="hljs-keyword">include</span> arch/<span class="hljs-variable">$(SRCARCH)</span>/Makefile<br><span class="hljs-keyword">export</span> KBUILD_DEFCONFIG KBUILD_KCONFIG CC_VERSION_TEXT<br><span class="hljs-comment"># </span><br><span class="hljs-comment">## 这里是config和 %config的构建命令，其依赖于 scripts_basic outputmakefile</span><br><span class="hljs-section">config: outputmakefile scripts_basic FORCE</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/kconfig <span class="hljs-variable">$@</span><br><br><span class="hljs-section">%config: outputmakefile scripts_basic FORCE</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/kconfig <span class="hljs-variable">$@</span><br><br><span class="hljs-keyword">else</span> <span class="hljs-comment">#!config-build</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到导出了三个变量，分别是</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile">KBUILD_DEFCONFIG  <span class="hljs-comment">#在顶层makefile中定义，为export KBUILD_DEFCONFIG := defconfig，即默认的defconfig</span><br>KBUILD_KCONFIG <span class="hljs-comment"># 仅由scripts/kconfig中的Makefile文件使用，后文说明</span><br>CC_VERSION_TEXT <span class="hljs-comment">#gcc的版本信息</span><br><span class="hljs-comment"># CC_VERSION_TEXT = $(shell $(CC) --version 2&gt;/dev/null | head -n 1)</span><br></code></pre></td></tr></table></figure>
+
+<p>make的特性，在include某个makefile时，会同步将其展开，因此这里会直接将arch&#x2F;$(SRCARCH)&#x2F;Makefile进行展开，并计算其中的变量和make操作。</p>
+<p>以x86架构为例</p>
+<p>首先根据真实架构确定使用的defconfig是哪个，即KBUILD_DEFCONFIG</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># select defconfig based on actual architecture</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(ARCH)</span>,x86)<br>  <span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(<span class="hljs-built_in">shell</span> uname -m)</span>,x86_64)<br>        KBUILD_DEFCONFIG := x86_64_defconfig<br>  <span class="hljs-keyword">else</span><br>        KBUILD_DEFCONFIG := i386_defconfig<br>  <span class="hljs-keyword">endif</span><br><span class="hljs-keyword">else</span><br>        KBUILD_DEFCONFIG := <span class="hljs-variable">$(ARCH)</span>_defconfig<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>接下来会定义一些架构相关的东西，和一些特定的功能，如FUNCTION_GRAPH_TRACER之类的，比较重要的是下面这些</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># 架构相关的脚本</span><br><span class="hljs-section">archscripts: scripts_basic</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/tools relocs<br><br><span class="hljs-comment">###</span><br><span class="hljs-comment"># Syscall table generation</span><br><span class="hljs-comment"># 系统调用表</span><br><span class="hljs-section">archheaders:</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/entry/syscalls all<br></code></pre></td></tr></table></figure>
+
+<p>指定boot目录</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">boot := arch/x86/boot<br><br>KBUILD_IMAGE := <span class="hljs-variable">$(boot)</span>/bzImage<br></code></pre></td></tr></table></figure>
+
+<p>在x86架构下的默认动作是bzImage</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">all: bzImage</span><br><br><span class="hljs-comment"># bzImage会依赖vmlinux，注意这里的vmlinux没有指定前缀，那么这是顶层目录下的vmlinux</span><br><span class="hljs-section">bzImage: vmlinux</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(CONFIG_X86_DECODER_SELFTEST)</span>,y)<br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/tools posttest<br><span class="hljs-keyword">endif</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$(boot)</span> <span class="hljs-variable">$(KBUILD_IMAGE)</span><br>	<span class="hljs-variable">$(Q)</span>mkdir -p <span class="hljs-variable">$(objtree)</span>/arch/<span class="hljs-variable">$(UTS_MACHINE)</span>/boot<br>	<span class="hljs-variable">$(Q)</span>ln -fsn ../../x86/boot/bzImage <span class="hljs-variable">$(objtree)</span>/arch/<span class="hljs-variable">$(UTS_MACHINE)</span>/boot/<span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到他的逻辑，不用管需要selftest的部分，首先使用一个make去执行boot目录下的makefile，并且指定目标是boot下的bzImage，然后在输出目录下建立boot目录，建立软链接，将输出目录下的bzImage和源码目录下产生的bzImage链接起来</p>
+<p>上面的部分执行完，bzImage应该就顺利产生了，然而，本次的目标是构建.config文件，并没有all目标，这里可以注意到一个小细节，顶层makefile的默认目标是_all，而不是all，所以当执行.config的构建路径时，all目标并不会被执行。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># config是默认的config，%config是其他乱七八糟的config，如defconfig，i386_defconfig等</span><br><span class="hljs-comment"># 并且他们都有相同的依赖（prerequiries），outputmakefile和scripts_basic</span><br><span class="hljs-section">config: outputmakefile scripts_basic FORCE</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/kconfig <span class="hljs-variable">$@</span><br><br><span class="hljs-section">%config: outputmakefile scripts_basic FORCE</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/kconfig <span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>其中，outputmakefile用来为源码目录和输出目录不一致时，为输出目录生成一份makeifle。scripts_basic用来生成词法分析器fixdep</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">outputmakefile:</span><br><span class="hljs-keyword">ifdef</span> building_out_of_srctree<br>	<span class="hljs-variable">$(Q)</span>if [ -f <span class="hljs-variable">$(srctree)</span>/.config -o \<br>		 -d <span class="hljs-variable">$(srctree)</span>/<span class="hljs-keyword">include</span>/config -o \<br>		 -d <span class="hljs-variable">$(srctree)</span>/arch/<span class="hljs-variable">$(SRCARCH)</span>/<span class="hljs-keyword">include</span>/generated ]; then \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;***&quot;</span>; \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;*** The source tree is not clean, please run &#x27;make$(if $(findstring command line, $(origin ARCH)), ARCH=<span class="hljs-variable">$(ARCH)</span>) mrproper&#x27;&quot;</span>; \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;*** in <span class="hljs-variable">$(abs_srctree)</span>&quot;</span>;\<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;***&quot;</span>; \<br>		false; \<br>	fi<br><span class="hljs-comment">## 在当前目录创建一个符号链接</span><br><span class="hljs-comment">## 链接源码目录到输出目录下的source目录 -fsn是针对目录的，若已有符号链接，不跟随且覆盖原有定义</span><br>	<span class="hljs-variable">$(Q)</span>ln -fsn <span class="hljs-variable">$(srctree)</span> source<br><span class="hljs-comment">### mkmakefile在输出目录生成了一个Makefile，以使得输出目录可以编译</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(CONFIG_SHELL)</span> <span class="hljs-variable">$(srctree)</span>/scripts/mkmakefile <span class="hljs-variable">$(srctree)</span><br><span class="hljs-comment"># ## 若输出目录存在.gitignore则结束，否则创建.gitignore,并写入 *,即忽略输出目录的所有文件</span><br>	<span class="hljs-variable">$(Q)</span>test -e .gitignore || \<br>	&#123; echo <span class="hljs-string">&quot;# this is build directory, ignore it&quot;</span>; echo <span class="hljs-string">&quot;*&quot;</span>; &#125; &gt; .gitignore<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，只有源码目录和输出目录不一致时，才会在输出目录下生成makefile，否则outputmakefile只是一个空操作。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># scripts_basic则会使用一个子make，去scirpts/basic目录下去执行makefile</span><br>PHONY += scripts_basic<br><span class="hljs-section">scripts_basic:</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/basic<br>	<span class="hljs-variable">$(Q)</span>rm -f .tmp_quiet_recordmcount<br></code></pre></td></tr></table></figure>
+
+<p>scripts&#x2F;basic目录下只有三个文件，一个.gitignore，一个fixdep.c，一个Makefile。</p>
+<p>.gitignore不用管，只是版本控制文件，fixdep.c是词法分析器的c文件，使用HOSTCC进行编译，Makefile则是scripts_basic目标具体执行的命令，可以看到上面的命令，$(build)后面并没有执行具体的目标，那么Makefile.build则会执行默认目标，_build。</p>
+<p>先看scripts&#x2F;basic中的Makefile文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">hostprogs-always-y	+= fixdep<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，就是单纯的为hostprogs-always-y增加了fixdep</p>
+<p>而这个hostprogs-always-y在Makefile.lib中有定义，Makefile.lib文件是提供Kbuild中的一些变量定义，如各种编译的flag，obj-y，obj-m，subdir-ym，hostprogs，always-y，extra-y等编译的目标（Makefile.lib会被包含到Makefile.build文件中）。</p>
+<p>其中hostprogs定义如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">hostprogs += $(hostprogs-always-y) $(hostprogs-always-m)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，fixdep最终被包含到hostprogs中，而hostprogs会在Makefile.build中被scripts&#x2F;Makefile.host处理</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># 先包含Makefile.lib，获得hostprogs变量</span><br><span class="hljs-keyword">include</span> scripts/Makefile.lib<br><br><span class="hljs-comment"># Do not include hostprogs rules unless needed.</span><br><span class="hljs-comment"># $(sort ...) is used here to remove duplicated words and excessive spaces.</span><br><br><span class="hljs-comment">## 若需要编译host相关的目标，则引入Makefile.host</span><br>hostprogs := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> <span class="hljs-variable">$(hostprogs)</span>)</span><br><span class="hljs-keyword">ifneq</span> (<span class="hljs-variable">$(hostprogs)</span>,)<br><span class="hljs-keyword">include</span> scripts/Makefile.host<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>上面提到过，make在include一个makefile的时候，会直接将其进行展开，Makefile.host中会对hostprogs分类进行处理</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># C code</span><br><span class="hljs-comment"># Executables compiled from a single .c file</span><br><span class="hljs-comment"># 从单个.c文件到可执行文件，看下面的代码，首先从hostprogs中获得某个成员，</span><br><span class="hljs-comment"># 如fixdep，然后查看fixdep-objs或者fixdep-cxxobjs是否存在，若存在则说明不是单个.c文件，若不存在，则将其加入到host-csingle中</span><br>host-csingle	:= <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> m,<span class="hljs-variable">$(hostprogs)</span>, \</span><br><span class="hljs-variable">			$(<span class="hljs-built_in">if</span> $(<span class="hljs-variable">$(m)</span>-objs)</span>$(<span class="hljs-variable">$(m)</span>-cxxobjs),,<span class="hljs-variable">$(m)</span>))<br><br><span class="hljs-comment"># C executables linked based on several .o files</span><br><span class="hljs-comment"># 基于若干.o生成可执行c文件，看下面的代码</span><br><span class="hljs-comment"># 还是以fixdep为例，首先查看fixdep-cxxobjs是否存在，若存在则为空，若不存在，则看fixdep-objs是否存在，若存在就将其放入host-cmulti中，其实就是找到不在-cxxobjs，但在-objs中的变量，放入host-cmulti中</span><br>host-cmulti	:= <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> m,<span class="hljs-variable">$(hostprogs)</span>,\</span><br><span class="hljs-variable">		   $(<span class="hljs-built_in">if</span> $(<span class="hljs-variable">$(m)</span>-cxxobjs)</span>,,<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-variable">$(m)</span>-objs)</span>,<span class="hljs-variable">$(m)</span>)))<br><br><span class="hljs-comment"># Object (.o) files compiled from .c files</span><br><span class="hljs-comment"># 从.c编译到.o</span><br><span class="hljs-comment"># 查看代码，还是以fixdep为例，获取所有fixdep-objs的变量</span><br>host-cobjs	:= <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">foreach</span> m,<span class="hljs-variable">$(hostprogs)</span>,$(<span class="hljs-variable">$(m)</span>-objs)</span>))<br><br><span class="hljs-comment"># C++ code</span><br><span class="hljs-comment"># C++ executables compiled from at least one .cc file</span><br><span class="hljs-comment"># and zero or more .c files</span><br><span class="hljs-comment"># 从.cc到可执行文件</span><br><span class="hljs-comment"># 找出所有存在-cxxobjs的变量，放入host-cxxmulti中</span><br>host-cxxmulti	:= <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> m,<span class="hljs-variable">$(hostprogs)</span>,$(<span class="hljs-built_in">if</span> $(<span class="hljs-variable">$(m)</span>-cxxobjs)</span>,<span class="hljs-variable">$(m)</span>))<br><br><span class="hljs-comment"># C++ Object (.o) files compiled from .cc files</span><br><span class="hljs-comment"># 从.cc到.o</span><br><span class="hljs-comment"># 从host-cxxmulti中，找存在-cxxobjs的变量</span><br>host-cxxobjs	:= <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">foreach</span> m,$(host-cxxmulti)</span>,$(<span class="hljs-variable">$(m)</span>-cxxobjs)))<br><span class="hljs-comment"># 以下是将其添加前缀</span><br>host-csingle	:= <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(host-csingle)</span>)<br>host-cmulti	:= <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(host-cmulti)</span>)<br>host-cobjs	:= <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(host-cobjs)</span>)<br>host-cxxmulti	:= <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(host-cxxmulti)</span>)<br>host-cxxobjs	:= <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(host-cxxobjs)</span>)<br></code></pre></td></tr></table></figure>
+
+<p>以fixdep为例分析，通过以上流程，fixdep会被加入到host-csingle变量中，由host-csingle到可执行文件的代码如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_host-csingle 	= HOSTCC  <span class="hljs-variable">$@</span><br>      cmd_host-csingle	= <span class="hljs-variable">$(HOSTCC)</span> <span class="hljs-variable">$(hostc_flags)</span> \<br>      	<span class="hljs-variable">$(KBUILD_HOSTLDFLAGS)</span> -o <span class="hljs-variable">$@</span> <span class="hljs-variable">$&lt;</span> \<br>		<span class="hljs-variable">$(KBUILD_HOSTLDLIBS)</span> $(HOSTLDLIBS_$(target-stem))<br><span class="hljs-section">$(host-csingle): <span class="hljs-variable">$(obj)</span>/%: <span class="hljs-variable">$(src)</span>/%.c FORCE</span><br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed_dep,host-csingle)</span><br></code></pre></td></tr></table></figure>
+
+<p>除非指定了V&#x3D;1，否则默认输出quiet_cmd_host-csingle，即显示在屏幕上的是HOSTCC …</p>
+<p>还是以fixdep为例</p>
+<ul>
+<li>这里的$(host-csingle)会展开为fixdep</li>
+<li><code>$(obj)/%: $(src)/%.c</code>是模式匹配语法，将<code>$(obj)</code>下面的文件全部替换成对应的.c文件，这里的obj是执行Makefile.build时传入的，即scripts&#x2F;basic，该目录下面只有三个文件，.gitignore是版本控制文件，不用管，Makefile是当前正在执行的Makefile，就还剩下fixdep.c文件，也就是说，这里就是指fixdep依赖fixdep.c文件</li>
+<li>注意后面的FORCE，意味着，不论这个.c是否比目标更新，永远都会执行下面的命令，因为FORCE是伪目标，伪目标永远是最新的</li>
+</ul>
+<p>下面分析if_changed_dep</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># Execute the command and also postprocess generated .d dependencies file.</span><br>if_changed_dep = <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(newer-prereqs)</span>\<br>					$(cmd-check),<span class="hljs-variable">$(cmd_and_fixdep)</span>,@:)<br><br>cmd_and_fixdep = <span class="hljs-variable">$(cmd)</span>;\<br>				scripts/basic/fixdep <span class="hljs-variable">$(depfile)</span> <span class="hljs-variable">$@</span> &#x27;$(make-cmd)&#x27; &gt; 					$(dot-target).cmd;\<br>				rm -f <span class="hljs-variable">$(depfile)</span><br></code></pre></td></tr></table></figure>
+
+<p>if_changed_dep首先会检查依赖是否比目标更新，然后查看本次执行和之前保存的.d文件中的命令是否一致，若这两个条件有一个满足，那么执行cmd_and_fixdep，否则执行<code>@:</code>，这里的<code>@:</code>只是占位符，表示啥也不做</p>
+<p>cmd_and_fixdep首先会执行本次的命令，即<code>$(cmd)</code></p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">cmd = @set -e; $(echo-cmd) $(cmd_$(1))<br><span class="hljs-comment">#cmd_host-csingle	= $(HOSTCC) $(hostc_flags) \</span><br><span class="hljs-comment">#      	$(KBUILD_HOSTLDFLAGS) -o $@ $&lt; \</span><br><span class="hljs-comment">#		$(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))</span><br><span class="hljs-comment">#$(host-csingle): $(obj)/%: $(src)/%.c FORCE</span><br><span class="hljs-comment">#	    $(call if_changed_dep,host-csingle)</span><br></code></pre></td></tr></table></figure>
+
+<p>根据调用处的代码，<code>$(1)</code>就是<code>host-csingle</code>，那么<code>$(cmd_$(1))</code>就是<code>cmd_host-csingle</code>，可以看到，就是用HOSTCC，也就是gcc进行了编译，输出是<code>$(host-csingle)</code>，即fixdep，输入是<code>$&lt;</code>，也就是第一个依赖，本例中是fixdep.c，那么到此时，fixdep就被HOST编译完成了。</p>
+<p>再来看剩下的代码</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">cmd_and_fixdep = <span class="hljs-variable">$(cmd)</span>;\<br>				scripts/basic/fixdep <span class="hljs-variable">$(depfile)</span> <span class="hljs-variable">$@</span> &#x27;$(make-cmd)&#x27; &gt; 					$(dot-target).cmd;\<br>				rm -f <span class="hljs-variable">$(depfile)</span><br></code></pre></td></tr></table></figure>
+
+<p>使用编译好的fixdep，将<code>$(depfile)</code>，<code>$@</code>，<code>$(make-cmd)</code>生成一个.cmd文件，也就是该文件上次编译的记录，用来对比本次编译和上次编译中，编译命令改变的部分，最后把临时文件<code>$(depfile)</code>删掉，这也是为什么fixdep叫词法分析器的原因，fixdep的c源码就不在此进行分析了，depfile是c文件的头文件依赖。</p>
+<p>好了，现在谁还记得我们调用Makefile.build的时候没有指定目标，因此执行的默认目标_build，这也是Kbuild分析的难点，容易陷入到各种细节中去，回到我们的_build，由于内核在顶层Makefile中调用scripts&#x2F;basic下的Makefile时没有指定single-build，need-builtin和need-modorder，因此执行流直接来到下面的代码处</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">__build: $(if <span class="hljs-variable">$(KBUILD_BUILTIN)</span>, $(targets-for-builtin)) \</span><br>	 <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(KBUILD_MODULES)</span>, $(targets-for-modules)</span>) \<br>	 $(subdir-ym) $(always-y)<br>	@:<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，脚本命令处只是占位符<code>@:</code>，因此这里_build目标的作用就是让后面的依赖生成，这里面KBUILD_BUILTIN和KBUILD_MODULES都为空，subdir-ym也为空，但是always-y不是空，因为在Makefile.lib中有如下定义</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">always-y += $(hostprogs-always-y) $(hostprogs-always-m)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到我们的fixdep被always-y包含进来了，因此这里要对always-y进行生成，<code>$(alwasy-y)</code>展开后就是fixdep，然后上面的fixdep已经被生成了，因此到这里，本次Makefile.build的流程结束，我们回到顶层Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">%config: outputmakefile scripts_basic FORCE</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/kconfig <span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>两个依赖都更新了，现在开始执行命令，还是build，但是现在目录是sripts&#x2F;kconfig了，还传进去一个参数，$@，就是我们的目标，%config</p>
+<p>还是之前的分析方法，到scripts&#x2F;kconfig目录下找Makefile文件，这里可以注意一下，在Makefile.build中，会首先去读取该目录下的kbuild文件，如果没有才回去读取Makefile文件，在scripts&#x2F;kconfig目录下是没有kbuild文件的，因此直接读取Makefile</p>
+<p>还记得前面定义的KBUILD_KCONFIG变量么，该变量会在这个Makefile中进行判定</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> KBUILD_KCONFIG<br>Kconfig := <span class="hljs-variable">$(KBUILD_KCONFIG)</span><br><span class="hljs-keyword">else</span><br>Kconfig := Kconfig<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>现在Kconfig变成了我们要输出的，也是内核构建最重要的.config了</p>
+<p>以我们熟悉的i386_defconfig为例</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">%_defconfig: <span class="hljs-variable">$(obj)</span>/conf</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$&lt;</span> <span class="hljs-variable">$(silent)</span> --defconfig=arch/<span class="hljs-variable">$(SRCARCH)</span>/configs/<span class="hljs-variable">$@</span> <span class="hljs-variable">$(Kconfig)</span><br></code></pre></td></tr></table></figure>
+
+<p>这个defconfig需要首先构建$(obj)&#x2F;conf，这个obj其实就是scripts&#x2F;kconfig，也就是构建scripts&#x2F;kconfig&#x2F;conf，conf也是一个需要用HOSTCC进行编译的程序，因为在本Makefile中也有如下定义</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">common-objs	:= confdata.o expr.o lexer.lex.o parser.tab.o preprocess.o symbol.o util.o<br>hostprogs	+= conf<br>conf-objs	:= conf.o $(common-objs)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到conf被hostprogs包含了，并且还有conf-objs，结合前面对Makefile.host的分析，可以得到，conf是被host-cmulti处理的，展开如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">host-cmulti := conf<br>host-cobjs := $(conf-objs)<br><span class="hljs-comment"># 其中$(conf-objs)如上所示</span><br></code></pre></td></tr></table></figure>
+
+<p>host-cmulti和host-cobjs最终会通过以下渠道被编译</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_host-cmulti	= HOSTLD  <span class="hljs-variable">$@</span><br>      cmd_host-cmulti	= <span class="hljs-variable">$(HOSTCC)</span> <span class="hljs-variable">$(KBUILD_HOSTLDFLAGS)</span> -o <span class="hljs-variable">$@</span> \<br>			  <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/, $($(target-stem)</span>-objs)) \<br>			  <span class="hljs-variable">$(KBUILD_HOSTLDLIBS)</span> $(HOSTLDLIBS_$(target-stem))<br><span class="hljs-section">$(host-cmulti): FORCE</span><br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,host-cmulti)</span><br>	<br>quiet_cmd_host-cobjs	= HOSTCC  <span class="hljs-variable">$@</span><br>      cmd_host-cobjs	= <span class="hljs-variable">$(HOSTCC)</span> <span class="hljs-variable">$(hostc_flags)</span> -c -o <span class="hljs-variable">$@</span> <span class="hljs-variable">$&lt;</span><br><span class="hljs-section">$(host-cobjs): <span class="hljs-variable">$(obj)</span>/%.o: <span class="hljs-variable">$(src)</span>/%.c FORCE</span><br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed_dep,host-cobjs)</span><br></code></pre></td></tr></table></figure>
+
+<p>可知，host-cmulti是链接而成的，$(conf-objs)是一群.o文件，这些文件现在尚未生成，下面的$(host-cobjs)就是那群.o文件，通过模式匹配，host-cobjs的每一个.c文件都被编译为.o，最终conf被编译成功了。</p>
+<p>接着回到scripts&#x2F;kconfig目录下的Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">%_defconfig: <span class="hljs-variable">$(obj)</span>/conf</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$&lt;</span> <span class="hljs-variable">$(silent)</span> --defconfig=arch/<span class="hljs-variable">$(SRCARCH)</span>/configs/<span class="hljs-variable">$@</span> <span class="hljs-variable">$(Kconfig)</span><br></code></pre></td></tr></table></figure>
+
+<p>conf已经生成了，下面执行命令，命令展开之后就是</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">conf --defconfig=arch/x86/configs/i386_defconfig .config<br></code></pre></td></tr></table></figure>
+
+<p>conf程序源码就不仔细分析了，我们只需要知道，.config，auto.conf，autoconf.h都是在这里生成的，其中auto.conf给顶层Makefile使用，autoconf.h给Linux内核使用。</p>
+<p>最后是一个小彩蛋，内核中经典的.config配置完成后的终端输出</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment">#</span><br><span class="hljs-comment"># configuration written to .config</span><br><span class="hljs-comment">#</span><br></code></pre></td></tr></table></figure>
+
+<p>来自于confdata.c中的函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">conf_message(<span class="hljs-string">&quot;configuration written to %s&quot;</span>, name);<br></code></pre></td></tr></table></figure>
+
+<p>其中name就是我们调用conf时传入的$(Kconfig)，也就是.config</p>
+<h1 id="二、all的流程"><a href="#二、all的流程" class="headerlink" title="二、all的流程"></a>二、all的流程</h1><h3 id="1-all"><a href="#1-all" class="headerlink" title="1. __all"></a>1. __all</h3><p>顶层Makefile的默认目标是</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile">PHONY := __all<br><span class="hljs-section">__all:</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-all"><a href="#2-all" class="headerlink" title="2. all"></a>2. all</h3><p>当不需要构建.config的时候，config-build变量不会被设置，因此走的是下面的分支</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">else</span> <span class="hljs-comment">#!config-build</span><br><span class="hljs-comment"># 把all加入到伪目标</span><br>PHONY += all<br></code></pre></td></tr></table></figure>
+
+<p>然后，本流程我们关注内核buildin的内容，不关注模块的内容，因此</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># </span><br><span class="hljs-comment">## 当编译in-tree的代码时，默认的目标是伪目标all,all是只有在编译非外部模块才会用到的目标(语义上）</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(KBUILD_EXTMOD)</span>,)<br><span class="hljs-section">__all: all</span><br><span class="hljs-keyword">else</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment">## 编译out-tree的代码时，默认的目标是伪目标modules,modules是在编译外部或非外部模块均有可能用到的目标</span><br><span class="hljs-section">__all: modules</span><br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>我们看到，如果不是编译模块的话，默认的目标_all的依赖是all，也就是编译内核的最开始的目标</p>
+<p>还记得我们上个流程编译的.config么？同时生成的还有auto.conf和autoconf.h，我们说过，auto.conf是用来给顶层Makefile使用的，下面他就来了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> need-config<br><span class="hljs-keyword">include</span> <span class="hljs-keyword">include</span>/config/auto.conf<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>看到need-config了么？只有当需要.config的时候，才会定义这个变量，然后包含auto.conf</p>
+<p>然后定义一些需要链接到vmlinux中的子目录</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(KBUILD_EXTMOD)</span>,)<br><span class="hljs-comment"># Objects we will link into vmlinux / subdirs we need to visit</span><br>core-y		:= init/ usr/<br>drivers-y	:= drivers/ sound/<br>drivers-<span class="hljs-variable">$(CONFIG_SAMPLES)</span> += samples/<br>drivers-y	+= net/ virt/<br>libs-y		:= lib/<br><span class="hljs-keyword">endif</span> <span class="hljs-comment"># KBUILD_EXTMOD</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-vmlinux"><a href="#3-vmlinux" class="headerlink" title="3.vmlinux"></a>3.vmlinux</h3><p>vmlinux是顶层目录要生成的内核最重要的目标</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">all: vmlinux</span><br></code></pre></td></tr></table></figure>
+
+<p>我们看到，all依赖vmlinux，vmlinux除了上面内核的子目录，还有架构中的内容，因此需要将架构中的Makefile也包含进来</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">include</span> arch/<span class="hljs-variable">$(SRCARCH)</span>/Makefile<br></code></pre></td></tr></table></figure>
+
+<p>此时会有两种情况，nead-config表示此次构建需要auto.conf和autoconf.h，may-sync-config表示此次构建需要更新auto.conf和autoconf.h，也就是下面的代码</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> need-config<br><span class="hljs-keyword">ifdef</span> may-sync-config<br><br><span class="hljs-keyword">include</span> <span class="hljs-keyword">include</span>/config/auto.conf.cmd<br></code></pre></td></tr></table></figure>
+
+<p>该代码表示，如果本次构建需要.config的内容，并且需要更新auto.conf和autoconf.h，既然要更新，那就要知道上一次构建的情况，这里的auto.conf.cmd就是上一次构建auto.conf的命令</p>
+<p>如果.config直接不存在，直接报错，因为更新auto.conf是需要.config作为基础的</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-variable">$(KCONFIG_CONFIG)</span>:<br>	@echo &gt;&amp;2 &#x27;***&#x27;<br>	@echo &gt;&amp;2 &#x27;*** Configuration file <span class="hljs-string">&quot;<span class="hljs-variable">$@</span>&quot;</span> not found!&#x27;<br>	@echo &gt;&amp;2 &#x27;***&#x27;<br>	@echo &gt;&amp;2 &#x27;*** Please run some configurator (e.g. <span class="hljs-string">&quot;make oldconfig&quot;</span> or&#x27;<br>	@echo &gt;&amp;2 &#x27;*** <span class="hljs-string">&quot;make menuconfig&quot;</span> or <span class="hljs-string">&quot;make xconfig&quot;</span>).&#x27;<br>	@echo &gt;&amp;2 &#x27;***&#x27;<br>	@/bin/false<br></code></pre></td></tr></table></figure>
+
+<p>更新auto.conf的命令如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_syncconfig = SYNC    <span class="hljs-variable">$@</span><br>      cmd_syncconfig = <span class="hljs-variable">$(MAKE)</span> -f <span class="hljs-variable">$(srctree)</span>/Makefile syncconfig<br><span class="hljs-comment">## 这里是 如auto.conf.cmd的生成命令，实际上是执行 syncconfig，这个会匹配到当前文件的 %config</span><br>%/config/auto.conf %/config/auto.conf.cmd %/generated/autoconf.h: <span class="hljs-variable">$(KCONFIG_CONFIG)</span><br>	+<span class="hljs-variable">$(<span class="hljs-built_in">call</span> cmd,syncconfig)</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这三个文件都是依赖$(KCONFIG_CONFIG)，也就是.config的，如果.config不存在，那么就会打印echo的一堆错误信息</p>
+<p>然后，执行分支到了这里</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">else</span> <span class="hljs-comment"># !may-sync-config</span><br></code></pre></td></tr></table></figure>
+
+<p>也就是，下面的代码，不需要更新auto.conf和autoconf.h，只是需要.config存在</p>
+<p>首先将auto.conf加入到伪目标</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs makefile">PHONY += <span class="hljs-keyword">include</span>/config/auto.conf<br><br><span class="hljs-section">include/config/auto.conf:</span><br>	<span class="hljs-variable">$(Q)</span>test -e <span class="hljs-keyword">include</span>/generated/autoconf.h -a -e <span class="hljs-variable">$@</span> || (		\<br>	echo &gt;&amp;2;							\<br>	echo &gt;&amp;2 <span class="hljs-string">&quot;  ERROR: Kernel configuration is invalid.&quot;</span>;		\<br>	echo &gt;&amp;2 <span class="hljs-string">&quot;         include/generated/autoconf.h or <span class="hljs-variable">$@</span> are missing.&quot;</span>;\<br>	echo &gt;&amp;2 <span class="hljs-string">&quot;         Run &#x27;make oldconfig &amp;&amp; make prepare&#x27; on kernel src to fix it.&quot;</span>;	\<br>	echo &gt;&amp;2 ;							\<br>	/bin/false)<br></code></pre></td></tr></table></figure>
+
+<p>看autoconf.h是否存在，不存在则报错</p>
+<p>继续前进</p>
+<p>顶层Makefile首先导出了两个默认的符号，一个是默认镜像名字，一个是默认安装路径</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">export</span> KBUILD_IMAGE ?= vmlinux<br><br><span class="hljs-keyword">export</span>	INSTALL_PATH ?= /boot<br></code></pre></td></tr></table></figure>
+
+<hr>
+<p>&#x3D;&#x3D;分界线—–下面很重要&#x3D;&#x3D;</p>
+<hr>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">PHONY += prepare0<br></code></pre></td></tr></table></figure>
+
+<p>注意这个prepare0</p>
+<p>还是只看内建信息的构建</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># 非模块的构建</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(KBUILD_EXTMOD)</span>,)<br>core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/<br><br>vmlinux-dirs	:= <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/,%,$(<span class="hljs-built_in">filter</span> %/, \</span><br><span class="hljs-variable">		     $(core-y)</span> $(core-m) $(drivers-y) $(drivers-m) \<br>		     $(libs-y) $(libs-m)))<br><br>vmlinux-alldirs	:= <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(vmlinux-dirs)</span> Documentation \<br>		     <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/,%,$(<span class="hljs-built_in">filter</span> %/, $(core-)</span> \<br>			$(drivers-) $(libs-))))<br><br>subdir-modorder := <span class="hljs-variable">$(<span class="hljs-built_in">addsuffix</span> modules.order,$(<span class="hljs-built_in">filter</span> %/, \</span><br><span class="hljs-variable">			$(core-y)</span> $(core-m) $(libs-y) $(libs-m) \<br>			$(drivers-y) $(drivers-m)))<br><br>build-dirs	:= $(vmlinux-dirs)<br>clean-dirs	:= $(vmlinux-alldirs)<br></code></pre></td></tr></table></figure>
+
+<p>首先执行流是builtin内容的构建</p>
+<p>需要链接到vmlinux的子目录加到core-y中来，注意这里为何要放在这里，因为内核模块构建需要的内容与其不同</p>
+<p>接着定义了三个经典变量vmlinux-dirs，vmlinux-alldirs，subdir-modorder，subdir-modorder暂时不管，那是构建模块的，vmlinux-dirs是所有需要包含在内核内建内容中的目录，vmlinux-alldirs是所有的目录，不论是否包含在builtin中，build-dirs就是构建目录，clean-dirs就是执行make clean时需要递归的目录</p>
+<p>下面开始，是两个重要的变量，由link-vmlinux.sh使用</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">KBUILD_VMLINUX_OBJS := $(head-y) <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/,%/built-in.a, $(core-y)</span>)<br>KBUILD_VMLINUX_OBJS += <span class="hljs-variable">$(<span class="hljs-built_in">addsuffix</span> built-in.a, $(<span class="hljs-built_in">filter</span> %/, $(libs-y)</span>))<br>KBUILD_VMLINUX_LIBS := <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/,%/lib.a, $(libs-y)</span>)<br>KBUILD_VMLINUX_OBJS += <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/,%/built-in.a, $(drivers-y)</span>)<br><span class="hljs-comment"># 将这两个变量导出，使得其他文件可以使用这两个变量</span><br><span class="hljs-keyword">export</span> KBUILD_VMLINUX_OBJS KBUILD_VMLINUX_LIBS<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这个KBUILD_VMLINUX_OBJS包含了head-y的内容，还有core-y，libs-y中的目录，添加built-in.a后缀，还有drivers-y的built-in.a，除了head-y中的内容，剩下的全是各个目录中的built-in.a文件，这是一个归档文件，由该目录下所有的目标文件使用AR归档而成。</p>
+<p>然后指定了KBUILD的链接脚本</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">export</span> KBUILD_LDS          := arch/<span class="hljs-variable">$(SRCARCH)</span>/kernel/vmlinux.lds<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-vmlinux-deps"><a href="#4-vmlinux-deps" class="headerlink" title="4.vmlinux-deps"></a>4.vmlinux-deps</h3><p>还有vmlinux的所有依赖</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment">## 这个是编译vmlinux的依赖文件 这里都是.a,不同版本的问题</span><br><span class="hljs-comment">## vmlinux-deps: arch/arm64/kernel/vmlinux.lds arch/arm64/kernel/head.o  init/built-in.a ...  arch/arm64/lib/lib.a  lib/lib.a</span><br><span class="hljs-comment">## vmlinux的依赖是链接脚本，各种built-in.a和各种lib.a</span><br><br>vmlinux-deps := <span class="hljs-variable">$(KBUILD_LDS)</span> <span class="hljs-variable">$(KBUILD_VMLINUX_OBJS)</span> <span class="hljs-variable">$(KBUILD_VMLINUX_LIBS)</span><br><br><span class="hljs-comment"># 根据vmlinux的编译规则可知，其一共包含三个依赖项:</span><br><span class="hljs-comment">#    1.scripts/link-vmlinux.sh: 这是编译命令中具体执行的脚本,其没什么规则，必须存在</span><br><span class="hljs-comment">#    2.autoksyms_recursive: 若要drop没有用到的内核和模块的导出符号，则此目标中会有命令</span><br><span class="hljs-comment">#    3.$(vmlinux-deps): 包括arch相关的vmlinux链接脚本(如arch/arm64/kernel/vmlinux.lds),各种built-in.a和各种lib.a文件</span><br><span class="hljs-comment">#    对于依赖来说，其中最主要的是，若想编译vmlinux，那其前提就是$(vmlinux-deps)中的所有目标(vmlinux.lds, */built-in.a, */lib.a)都要编译先编译出来(这些目录名的规则见下).</span><br><span class="hljs-comment">#   而其编译命令一共有两条:</span><br><span class="hljs-comment">#    1.执行scripts/link-vmlinux.sh编译vmlinux</span><br><span class="hljs-comment">#    2.若平台存在Makefile.postlink，则在构建vmlinux后执行make -f Makefile.postlink</span><br></code></pre></td></tr></table></figure>
+
+<p>接下来到vmlinux的构建</p>
+<p>还记得我们前面说过all目标的依赖是vmlinux么？下面他来了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">cmd_link-vmlinux =                                                 \<br>	<span class="hljs-variable">$(CONFIG_SHELL)</span> <span class="hljs-variable">$&lt;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(LD)</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(KBUILD_LDFLAGS)</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(LDFLAGS_vmlinux)</span>&quot;</span>;    \<br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(ARCH_POSTLINK)</span>, <span class="hljs-variable">$(MAKE)</span> -f <span class="hljs-variable">$(ARCH_POSTLINK)</span> <span class="hljs-variable">$@</span>, true)</span><br><br><span class="hljs-section">vmlinux: scripts/link-vmlinux.sh autoksyms_recursive $(vmlinux-deps) FORCE</span><br>	+<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,link-vmlinux)</span><br></code></pre></td></tr></table></figure>
+
+<p>vmlinux会依赖link-vmlinux.sh，vmlinux-deps，这里的autoksyms_recursive暂时先不管，也就是说，要想生成vmlinux，首先要生成link-vmlinux.sh和vmlinux-deps，其中link-vmlinux.sh就是scripts目录下的文件，就是现成的，vmlinux-deps我们前面说过，它是要组建vmlinux的built-in.a和lib.a，我们一个个看。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(vmlinux-deps)</span> $(subdir-modorder)): descend ;<br></code></pre></td></tr></table></figure>
+
+<p>暂时不用管后面的subdir-modorder，那是模块编译的内容，这里可知，首先会将vmlinux-deps中的变量排序去重，他们共同的依赖是descend</p>
+<h3 id="5-descend"><a href="#5-descend" class="headerlink" title="5.descend"></a>5.descend</h3><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">descend: $(build-dirs)</span><br></code></pre></td></tr></table></figure>
+
+<p>build-dirs也是前面说过的，它是所有要编译进vmlinux的目录名字，没有后面的’&#x2F;‘</p>
+<h3 id="6-prepare"><a href="#6-prepare" class="headerlink" title="6.prepare"></a>6.prepare</h3><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">$(build-dirs): prepare</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$@</span> \<br>	single-build=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span>-out <span class="hljs-variable">$@</span>/, $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/%, <span class="hljs-variable">$(KBUILD_SINGLE_TARGETS)</span>)</span>),1) \<br>	need-builtin=1 need-modorder=1<br></code></pre></td></tr></table></figure>
+
+<p>这后面的依赖，prepare，是进行具体编译的前置准备，非常重要</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">prepare: prepare0 prepare-objtool prepare-resolve_btfids</span><br></code></pre></td></tr></table></figure>
+
+<p>共有三个依赖，prepare0，prepare-objtools，prepare-resolve_btfids，prepare0前面已经出现过，并被声明成伪目标，下面是prepare0的依赖</p>
+<h3 id="7-prepare0"><a href="#7-prepare0" class="headerlink" title="7.prepare0"></a>7.prepare0</h3><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">prepare0: archprepare</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=scripts/mod<br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=.<br>	<br><span class="hljs-section">archprepare: outputmakefile archheaders archscripts scripts include/config/kernel.release \</span><br>	asm-generic <span class="hljs-variable">$(version_h)</span> <span class="hljs-variable">$(autoksyms_h)</span> <span class="hljs-keyword">include</span>/generated/utsrelease.h \<br>	<span class="hljs-keyword">include</span>/generated/autoconf.h<br></code></pre></td></tr></table></figure>
+
+<p>东西很多，但是没办法，一个一个看吧</p>
+<p>首先是<code>outputmakefile</code></p>
+<p>这个变量是源码目录和输出目录不一致时用到的，作用是在输出目录产生一个顶层Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">outputmakefile:</span><br><span class="hljs-comment"># 如果定义了在源码目录外进行构建</span><br><span class="hljs-keyword">ifdef</span> building_out_of_srctree<br><span class="hljs-comment"># 如果源码目录不干净（进行过编译），就显示需要进行make mrproper</span><br>	<span class="hljs-variable">$(Q)</span>if [ -f <span class="hljs-variable">$(srctree)</span>/.config -o \<br>		 -d <span class="hljs-variable">$(srctree)</span>/<span class="hljs-keyword">include</span>/config -o \<br>		 -d <span class="hljs-variable">$(srctree)</span>/arch/<span class="hljs-variable">$(SRCARCH)</span>/<span class="hljs-keyword">include</span>/generated ]; then \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;***&quot;</span>; \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;*** The source tree is not clean, please run &#x27;make$(if $(findstring command line, $(origin ARCH)), ARCH=<span class="hljs-variable">$(ARCH)</span>) mrproper&#x27;&quot;</span>; \<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;*** in <span class="hljs-variable">$(abs_srctree)</span>&quot;</span>;\<br>		echo &gt;&amp;2 <span class="hljs-string">&quot;***&quot;</span>; \<br>		false; \<br>	fi<br><span class="hljs-comment"># 设置源码目录的软链接source</span><br>	<span class="hljs-variable">$(Q)</span>ln -fsn <span class="hljs-variable">$(srctree)</span> source<br><span class="hljs-comment"># 在输出目录下重新生成一个Makefile</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(CONFIG_SHELL)</span> <span class="hljs-variable">$(srctree)</span>/scripts/mkmakefile <span class="hljs-variable">$(srctree)</span><br><span class="hljs-comment"># 生成.gitignore</span><br>	<span class="hljs-variable">$(Q)</span>test -e .gitignore || \<br>	&#123; echo <span class="hljs-string">&quot;# this is build directory, ignore it&quot;</span>; echo <span class="hljs-string">&quot;*&quot;</span>; &#125; &gt; .gitignore<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>目标<code>archheaders</code>是架构Makefile中的，以x86为例</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment">###</span><br><span class="hljs-comment"># Syscall table generation</span><br><br><span class="hljs-section">archheaders:</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/entry/syscalls all<br></code></pre></td></tr></table></figure>
+
+<p>就是生成系统调用表</p>
+<p>目标<code>archscripts</code>也是架构Makefile中的</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">archscripts: scripts_basic</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/tools relocs<br></code></pre></td></tr></table></figure>
+
+<p>其以scripts_basic为基础，也就是需要fixdep功能，然后去执行arch&#x2F;x86&#x2F;tools目录下Makefile文件的relocs目标</p>
+<p>目标<code>scripts</code>是构建scripts目录下的Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">scripts: scripts_basic scripts_dtc</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=$(@)<br></code></pre></td></tr></table></figure>
+
+<p>而后面的<code>asm-generic</code>则是生成一些公共的头文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile">asm-generic := -f <span class="hljs-variable">$(srctree)</span>/scripts/Makefile.asm-generic obj<br><br><span class="hljs-section">asm-generic: uapi-asm-generic</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> $(asm-generic)=arch/<span class="hljs-variable">$(SRCARCH)</span>/<span class="hljs-keyword">include</span>/generated/asm \<br>	generic=<span class="hljs-keyword">include</span>/asm-generic<br><br><span class="hljs-section">uapi-asm-generic:</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> $(asm-generic)=arch/<span class="hljs-variable">$(SRCARCH)</span>/<span class="hljs-keyword">include</span>/generated/uapi/asm \<br>	generic=<span class="hljs-keyword">include</span>/uapi/asm-generic<br></code></pre></td></tr></table></figure>
+
+<p>注意，这里的asm-generic是单独调用Makefile.asm-generic进行生成的，而不是传统的$(build)，首先看uapi-asm-generic目标，在这个过程中，obj被设置为arch&#x2F;x86&#x2F;include&#x2F;generated&#x2F;uapi&#x2F;asm，还有一个变量，generic被设置为include&#x2F;upai&#x2F;asm-generic，接下来我们到Makefile.asm-generic里面去瞅瞅</p>
+<hr>
+<blockquote>
+<p>Makefile.asm-generic</p>
+</blockquote>
+<hr>
+<p>这个Makefile中有一个默认的目标，all</p>
+<p>如果没有指定目标，那么就会执行这个默认目标</p>
+<p>我们前面说过，这个Makefile的obj目标被设为了arch&#x2F;x86&#x2F;include&#x2F;generated&#x2F;uapi&#x2F;asm，</p>
+<p>然后他就在下面被处理了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile">src := <span class="hljs-variable">$(<span class="hljs-built_in">subst</span> /generated,,<span class="hljs-variable">$(obj)</span>)</span><br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(src)</span>/Kbuild<br></code></pre></td></tr></table></figure>
+
+<p>obj中的&#x2F;generated被换成了空，然后赋给src，src是arch&#x2F;x86&#x2F;include&#x2F;uapi&#x2F;asm</p>
+<p>然后看$(src)目录下是否有Kbuild，如果有，就include进来，没有也不报错，因为可能有的架构中是没有这一项的，好在在x86中有这个Kbuild，内容如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">generated-y += unistd_32.h<br>generated-y += unistd_64.h<br>generated-y += unistd_x32.h<br></code></pre></td></tr></table></figure>
+
+<p>这三个.h文件，是系统调用相关的内容，被加入到generated-y变量中</p>
+<p>回到Makefile.asm-generic</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifneq</span> (<span class="hljs-variable">$(SRCARCH)</span>,um)<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(generic)</span>/Kbuild<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>判断当前架构是不是um架构，也就是前面说过的user mode架构，若不是，将generic路径下的Kbuild包含进来，generic变量前面提到过，是include&#x2F;upai&#x2F;asm-generic，不是架构下的，而是include目录下的，该目录下的Kbuild</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs makefile">mandatory-y += auxvec.h<br>mandatory-y += bitsperlong.h<br>mandatory-y += bpf_perf_event.h<br>mandatory-y += byteorder.h<br>mandatory-y += errno.h<br>mandatory-y += fcntl.h<br>mandatory-y += ioctl.h<br>mandatory-y += ioctls.h<br>mandatory-y += ipcbuf.h<br>mandatory-y += mman.h<br>mandatory-y += msgbuf.h<br>mandatory-y += param.h<br>mandatory-y += poll.h<br>mandatory-y += posix_types.h<br>mandatory-y += ptrace.h<br>mandatory-y += resource.h<br>mandatory-y += sembuf.h<br>mandatory-y += setup.h<br>mandatory-y += shmbuf.h<br>mandatory-y += sigcontext.h<br>mandatory-y += siginfo.h<br>mandatory-y += signal.h<br>mandatory-y += socket.h<br>mandatory-y += sockios.h<br>mandatory-y += stat.h<br>mandatory-y += statfs.h<br>mandatory-y += swab.h<br>mandatory-y += termbits.h<br>mandatory-y += termios.h<br>mandatory-y += types.h<br>mandatory-y += unistd.h<br></code></pre></td></tr></table></figure>
+
+<p>包含了一堆需要强制包含的头文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">all: $(generic-y)</span><br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(unwanted)</span>,$(<span class="hljs-built_in">call</span> cmd,remove)</span>)<br>	@:<br></code></pre></td></tr></table></figure>
+
+<p>默认的all目标是要依赖generic-y目标</p>
+<p>要理解这里，需要对make的语法有一定的了解，知道其变量展开的顺序</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># redundant表示冗余的，即选出在generic-y中，但是不在mandatory-y和generated-y中的变量</span><br>redundant := <span class="hljs-variable">$(<span class="hljs-built_in">filter</span> $(mandatory-y)</span> $(generated-y), $(generic-y))<br>redundant += <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> f, $(generic-y)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">wildcard</span> <span class="hljs-variable">$(srctree)</span>/<span class="hljs-variable">$(src)</span>/<span class="hljs-variable">$(f)</span>)</span>,<span class="hljs-variable">$(f)</span>))<br>redundant := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> <span class="hljs-variable">$(redundant)</span>)</span><br><span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(redundant)</span>,\</span><br><span class="hljs-variable">	$(<span class="hljs-built_in">warning</span> redundant generic-y found in <span class="hljs-variable">$(src)</span>/Kbuild: <span class="hljs-variable">$(redundant)</span>)</span>)<br></code></pre></td></tr></table></figure>
+
+<p>由于本次是执行的uapi-asm-generic分支，generic-y在此时还是为空，因此redundant也为空</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile">mandatory-y := <span class="hljs-variable">$(<span class="hljs-built_in">filter</span>-out $(generated-y)</span>, $(mandatory-y))<br>generic-y   += <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> f, $(mandatory-y)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">wildcard</span> <span class="hljs-variable">$(srctree)</span>/<span class="hljs-variable">$(src)</span>/<span class="hljs-variable">$(f)</span>)</span>,,<span class="hljs-variable">$(f)</span>))<br><br>generic-y   := <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/, $(generic-y)</span>)<br>generated-y := <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/, $(generated-y)</span>)<br></code></pre></td></tr></table></figure>
+
+<p>mandatory-y中取消掉已经在generated-y中的内容，现在开始定义generic-y，其内容为，在mandatory-y中的变量，如果其源文件已经存在，就不加入generic-y，如果不存在，就加入到generic-y中，（现在知道generic-y是用来做什么的了么？就是接下来要产生的文件的集合），然后为其加上路径前缀，而这里的generated-y则是源码中已经有了的文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># obj目录下已经有了的.h文件</span><br>old-headers := <span class="hljs-variable">$(<span class="hljs-built_in">wildcard</span> <span class="hljs-variable">$(obj)</span>/*.h)</span><br><span class="hljs-comment"># 已经有了的.h文件，去除掉将要产生和已经产生的，即是要废弃的</span><br>unwanted    := <span class="hljs-variable">$(<span class="hljs-built_in">filter</span>-out $(generic-y)</span> $(generated-y),$(old-headers))<br></code></pre></td></tr></table></figure>
+
+<p>分析完变量，接着来看命令了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_wrap = WRAP    <span class="hljs-variable">$@</span><br>      cmd_wrap = echo <span class="hljs-string">&quot;\#include &lt;asm-generic/<span class="hljs-variable">$*</span>.h&gt;&quot;</span> &gt; <span class="hljs-variable">$@</span><br><br>quiet_cmd_remove = REMOVE  <span class="hljs-variable">$(unwanted)</span><br>      cmd_remove = rm -f <span class="hljs-variable">$(unwanted)</span><br><br><span class="hljs-section">all: $(generic-y)</span><br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(unwanted)</span>,$(<span class="hljs-built_in">call</span> cmd,remove)</span>)<br>	@:<br><br><span class="hljs-variable">$(obj)</span>/%.h:<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> cmd,wrap)</span><br><br><span class="hljs-comment"># 如果没有老目录，就产生对应目录，免得生成对应.h的时候目录不存在而报错</span><br><span class="hljs-keyword">ifeq</span> ($(old-headers),)<br><span class="hljs-variable">$(<span class="hljs-built_in">shell</span> mkdir -p <span class="hljs-variable">$(obj)</span>)</span><br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>默认目标all依赖$(generic-y)，generic-y是强制目标mandatory-y中仍没有生成的部分，generic-y是源码目录下不存在的，那么就要在输出目录，也就是obj目录下生成，即目录（arch&#x2F;x86&#x2F;include&#x2F;generated&#x2F;uapi&#x2F;asm）下的，这也是为啥generic-y要加obj前缀的原因，因为要在obj目录下生成，src目录是没有generated的(arch&#x2F;x86&#x2F;include&#x2F;uapi&#x2F;asm)</p>
+<p>最后，具体的.h文件，通过wrap命令进行生成，其实就是在obj目录下生成了一个对应的.h文件，里面有一句#include &lt;asm-generic&#x2F;***.h&gt;</p>
+<p>看出来了吧，其实对应的.h都已经在include&#x2F;asm-generic&#x2F;下面放好了，只是针对对应架构，放入到一个可以被用户包含的头文件目录里面而已，也就是uapi目录喽</p>
+<p>uapi-asm-generic目标已经更新，那么回到asm-generic目标</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">asm-generic: uapi-asm-generic</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> $(asm-generic)=arch/<span class="hljs-variable">$(SRCARCH)</span>/<span class="hljs-keyword">include</span>/generated/asm \<br>	generic=<span class="hljs-keyword">include</span>/asm-generic<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，还是Makefile.asm-generic，只不过我们传入的obj和generic变量都没有了uapi这个部分，也就是，这一次产生的，是一些内核用的头文件</p>
+<p>还是先会将obj变量的generated去掉赋值给src，然后包含src对应目录下的Kbuild</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile">generated-y += syscalls_32.h<br>generated-y += syscalls_64.h<br>generated-y += unistd_32_ia32.h<br>generated-y += unistd_64_x32.h<br>generated-y += xen-hypercalls.h<br><br>generic-y += early_ioremap.h<br>generic-y += <span class="hljs-keyword">export</span>.h<br>generic-y += mcs_spinlock.h<br></code></pre></td></tr></table></figure>
+
+<p>是不是对比uapi目录下的Kbuild多了一些东西，起码我们有一个默认的generic-y了，而uapi是没有的，和之前的分析过程一样，就不多言了，这次我们在arch&#x2F;x86&#x2F;include&#x2F;generated&#x2F;asm目录下生成了很多.h文件，这些文件里面都是一句话，将include&#x2F;asm-generic目录下的某个.h文件包含进来。</p>
+<hr>
+<p>最后则是一些共有的文件，他们都有各自的规则进行生成</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment">#include/config/kernel.release: FORCE</span><br><span class="hljs-comment">#	$(call filechk,kernel.release)</span><br><span class="hljs-keyword">include</span>/config/kernel.release<br><span class="hljs-comment">#$(version_h): FORCE</span><br><span class="hljs-comment">#	$(call filechk,version.h)</span><br><span class="hljs-comment">#	$(Q)rm -f $(old_version_h)</span><br><span class="hljs-variable">$(version_h)</span><br><span class="hljs-variable">$(autoksyms_h)</span><br><span class="hljs-comment">#include/generated/utsrelease.h: include/config/kernel.release FORCE</span><br><span class="hljs-comment">#	$(call filechk,utsrelease.h)</span><br><span class="hljs-keyword">include</span>/generated/utsrelease.h<br><span class="hljs-comment"># .config流程里面通过conf生成</span><br><span class="hljs-keyword">include</span>/generated/autoconf.h<br></code></pre></td></tr></table></figure>
+
+<p>那么到此为止，archprepare目标已经更新完成，prepare0只有这一个依赖，因此prepare0也更新完成，prepare-objtool prepare-resolve_btfids两个本次流程不用管，因此prepare目标已经更新完毕啦！！！</p>
+<p>我们的旅途继续~</p>
+<hr>
+<h3 id="番外：Makefile-build-Kbuild-include-Makefile-lib"><a href="#番外：Makefile-build-Kbuild-include-Makefile-lib" class="headerlink" title="番外：Makefile.build Kbuild.include Makefile.lib"></a>番外：Makefile.build Kbuild.include Makefile.lib</h3><p>Makefile.build是Kbuild系统的核心机制，就在这里整体将它捋透吧</p>
+<p>在Makefile.build中，首先会清空构建目标的各种定义</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs makefile">obj-y :=<br>obj-m :=<br>lib-y :=<br>lib-m :=<br>always :=<br>always-y :=<br>always-m :=<br>targets :=<br>subdir-y :=<br>subdir-m :=<br>EXTRA_AFLAGS   :=<br>EXTRA_CFLAGS   :=<br>EXTRA_CPPFLAGS :=<br>EXTRA_LDFLAGS  :=<br>asflags-y  :=<br>ccflags-y  :=<br>cppflags-y :=<br>ldflags-y  :=<br><br>subdir-asflags-y :=<br>subdir-ccflags-y :=<br></code></pre></td></tr></table></figure>
+
+<p>在Makefile.build中，如果obj目录有Kbuild，那么优先使用Kbuild</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs makefile">src := <span class="hljs-variable">$(obj)</span><br><br>kbuild-dir := <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> /%,<span class="hljs-variable">$(src)</span>)</span>,<span class="hljs-variable">$(src)</span>,<span class="hljs-variable">$(srctree)</span>/<span class="hljs-variable">$(src)</span>)<br>kbuild-file := <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">wildcard</span> $(kbuild-<span class="hljs-built_in">dir</span>)</span>/Kbuild),$(kbuild-dir)/Kbuild,$(kbuild-dir)/Makefile)<br><span class="hljs-comment"># 对应目录中需要构建的对象在这里被包含进来，如obj-y等</span><br><span class="hljs-keyword">include</span> $(kbuild-file)<br><span class="hljs-comment"># 包含Makefile.lib，整理具体要编译的对象，以及编译的flag</span><br><span class="hljs-keyword">include</span> scripts/Makefile.lib<br></code></pre></td></tr></table></figure>
+
+<p>Makefile.build会包含Makefile.lib，这里面会根据need-modorder和need-builtin两个变量对可构建目标进行整理，得到要编译的目标，比如</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> need-builtin<br>obj-y		:= <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> %/, %/built-in.a, $(obj-y)</span>)<br><span class="hljs-keyword">else</span><br>obj-y		:= <span class="hljs-variable">$(<span class="hljs-built_in">filter</span>-out %/, $(obj-y)</span>)<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>obj-y目标会被定义为对应目录下的built-in.a</p>
+<p>然后根据是否为多重目标，进一步定义</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># If $(foo-objs), $(foo-y), $(foo-m), or $(foo-) exists, foo.o is a composite object</span><br>multi-used-y := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">foreach</span> m,$(obj-y)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">strip</span> $($(m:.o=-objs)</span>) $($(m:.o=-y)) $($(m:.o=-))), <span class="hljs-variable">$(m)</span>)))<br>multi-used-m := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">foreach</span> m,$(obj-m)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">strip</span> $($(m:.o=-objs)</span>) $($(m:.o=-y)) $($(m:.o=-m)) $($(m:.o=-))), <span class="hljs-variable">$(m)</span>)))<br>multi-used   := $(multi-used-y) $(multi-used-m)<br><br><span class="hljs-comment"># Replace multi-part objects by their individual parts,</span><br><span class="hljs-comment"># including built-in.a from subdirectories</span><br>real-obj-y := <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> m, $(obj-y)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">strip</span> $($(m:.o=-objs)</span>) $($(m:.o=-y)) $($(m:.o=-))),$($(m:.o=-objs)) $($(m:.o=-y)),<span class="hljs-variable">$(m)</span>))<br>real-obj-m := <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> m, $(obj-m)</span>, <span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">strip</span> $($(m:.o=-objs)</span>) $($(m:.o=-y)) $($(m:.o=-m)) $($(m:.o=-))),$($(m:.o=-objs)) $($(m:.o=-y)) $($(m:.o=-m)),<span class="hljs-variable">$(m)</span>))<br></code></pre></td></tr></table></figure>
+
+<p>这里的real-obj-y等变量则是真正要参与编译的</p>
+<p>回到Makefile.build，在该Makefile中，会根据real-obj-y等变量进行处理</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile">subdir-builtin := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">filter</span> %/built-in.a, $(real-obj-y)</span>))<br>subdir-modorder := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">filter</span> %/modules.order, $(obj-m)</span>))<br></code></pre></td></tr></table></figure>
+
+<p>得到了subdir-builtin等变量，这里的sort是为了去重，这样subdir-builtin中包含的是各个obj-y目录下的built-in.a</p>
+<p>重点来了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">targets-for-builtin := $(extra-y)<br></code></pre></td></tr></table></figure>
+
+<p>这个targets-for-builtin变量，表示要编译到内核中的内容，extra-y则是表示要额外处理的变量，即编译vmlinux需要，但是不合入vmlinux，举例而言就是x86下实模式的代码</p>
+<p>接着，将需要编译的目标都加入到targets-for-builtin中</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-keyword">ifdef</span> need-builtin<br>targets-for-builtin += <span class="hljs-variable">$(obj)</span>/built-in.a<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>而这些目标最后都会包括在targets目标中</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">targets += $(targets-for-builtin) $(targets-for-modules)<br></code></pre></td></tr></table></figure>
+
+<p>这个targets是非常重要的变量，后面我们会介绍他的意义</p>
+<p>接下来是具体文件对应的编译规则</p>
+<p>比如</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># vmlinux.lds.S --&gt; vmlinux.lds</span><br>quiet_cmd_cpp_lds_S = LDS     <span class="hljs-variable">$@</span><br>      cmd_cpp_lds_S = <span class="hljs-variable">$(CPP)</span> <span class="hljs-variable">$(cpp_flags)</span> -P -U<span class="hljs-variable">$(ARCH)</span> \<br>	                  -D__ASSEMBLY__ -DLINKER_SCRIPT -o <span class="hljs-variable">$@</span> <span class="hljs-variable">$&lt;</span><br><br><span class="hljs-variable">$(obj)</span>/%.lds: <span class="hljs-variable">$(src)</span>/%.lds.S FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed_dep,cpp_lds_S)</span><br>	<br><span class="hljs-comment"># 将目录下的.o归档为built-in.a</span><br>quiet_cmd_ar_builtin = AR      <span class="hljs-variable">$@</span><br>      cmd_ar_builtin = rm -f <span class="hljs-variable">$@</span>; <span class="hljs-variable">$(AR)</span> cDPrST <span class="hljs-variable">$@</span> $(real-prereqs)<br><br><span class="hljs-variable">$(obj)</span>/built-in.a: $(real-obj-y) FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,ar_builtin)</span><br></code></pre></td></tr></table></figure>
+
+<p>剩下的规则就不赘述了</p>
+<p>来看__build目标，这是Makefile.build的默认目标</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">__build: $(if <span class="hljs-variable">$(KBUILD_BUILTIN)</span>, $(targets-for-builtin)) \</span><br>	 <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(KBUILD_MODULES)</span>, $(targets-for-modules)</span>) \<br>	 $(subdir-ym) $(always-y)<br>	@:<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，__build目标的命令是空@:，单纯是为了更新他的依赖，KBUILD_BUILTIN是在顶层Makefile中定义的，如果是1的话，那么targets-for-builtin里面的目标都会被更新，然后subdir-ym和always-y默认会被编译，subdir-ym里面是一些子目录，需要进去递归执行的</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># Descending</span><br><span class="hljs-comment"># ---------------------------------------------------------------------------</span><br><br>PHONY += $(subdir-ym)<br><span class="hljs-section">$(subdir-ym):</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$@</span> \<br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/, <span class="hljs-variable">$(KBUILD_SINGLE_TARGETS)</span>)</span>,single-build=) \<br>	need-builtin=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/built-in.a, $(subdir-builtin)</span>),1) \<br>	need-modorder=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/modules.order, $(subdir-modorder)</span>),1)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，还是调用Makefile.build，一样的逻辑，递归到所有目标编译完成</p>
+<p>最后，还记得那个targets么？</p>
+<p>他来了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">existing-targets := <span class="hljs-variable">$(<span class="hljs-built_in">wildcard</span> $(<span class="hljs-built_in">sort</span> <span class="hljs-variable">$(targets)</span>)</span>)<br><br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(<span class="hljs-built_in">foreach</span> f,$(existing-targets)</span>,<span class="hljs-variable">$(<span class="hljs-built_in">dir</span> <span class="hljs-variable">$(f)</span>)</span>.<span class="hljs-variable">$(<span class="hljs-built_in">notdir</span> <span class="hljs-variable">$(f)</span>)</span>.cmd)<br></code></pre></td></tr></table></figure>
+
+<p>所有的targets去重后，若有通配符就将其展开，得到existing-targets，然后把对应的.cmd当作Makefile文件包含进来，这也是if_changed系列函数的基础，若没有这个，if_changed系列函数将不起作用</p>
+<hr>
+<h3 id="8-build-dirs"><a href="#8-build-dirs" class="headerlink" title="8.$(build-dirs)"></a>8.$(build-dirs)</h3><p>prepare更新完成之后，我们的准备工作已经完成，开始真正的内核编译啦~</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">$(build-dirs): prepare</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$@</span> \<br>	single-build=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span>-out <span class="hljs-variable">$@</span>/, $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/%, <span class="hljs-variable">$(KBUILD_SINGLE_TARGETS)</span>)</span>),1) \<br>	need-builtin=1 need-modorder=1<br></code></pre></td></tr></table></figure>
+
+<p>看其内容，针对其需要编译进内核的每一个目录，使用Makefile.build作为Makefile文件，obj变量为该需要编译的目录名</p>
+<p>single-build由KBUILD_SINGLE_TARGETS决定，本次流程中为空，因此single-build&#x3D;0</p>
+<p>由于架构目录下的Makefile在顶层Makefile中被包含，因此架构Makefile中的core-y也被加入到build-dirs里面，比如</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">core-y += arch/x86/<br></code></pre></td></tr></table></figure>
+
+<p>让我们以这个目录为例子，捋一遍build-dirs的构建流程</p>
+<p>首先，Makefile文件被指定为Makefile.build，obj变量为arch&#x2F;x86，single-build&#x3D;0，need-builtin&#x3D;1，need-modorder&#x3D;1，没有指定目标，因此使用默认目标__build</p>
+<p>arch&#x2F;x86目录下的Kbuild里面只有obj-y和obj-m</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs makefile">obj-y += entry/<br><br>obj-<span class="hljs-variable">$(CONFIG_PERF_EVENTS)</span> += events/<br><br>obj-<span class="hljs-variable">$(CONFIG_KVM)</span> += kvm/<br><br><span class="hljs-comment"># Xen paravirtualization support</span><br>obj-<span class="hljs-variable">$(CONFIG_XEN)</span> += xen/<br><br>obj-<span class="hljs-variable">$(CONFIG_PVH)</span> += platform/pvh/<br><br><span class="hljs-comment"># Hyper-V paravirtualization support</span><br>obj-<span class="hljs-variable">$(<span class="hljs-built_in">subst</span> m,y,<span class="hljs-variable">$(CONFIG_HYPERV)</span>)</span> += hyperv/<br><br>obj-y += realmode/<br>obj-y += kernel/<br>obj-y += mm/<br><br>obj-y += crypto/<br><br>obj-<span class="hljs-variable">$(CONFIG_IA32_EMULATION)</span> += ia32/<br><br>obj-y += platform/<br>obj-y += net/<br><br>obj-<span class="hljs-variable">$(CONFIG_KEXEC_FILE)</span> += purgatory/<br></code></pre></td></tr></table></figure>
+
+<p>进入Makefile.build之后，该文件会包含Makefile.lib，在Makefile.lib中，会对obj-变量进行处理，针对其由单个还是多个目标文件构成，归类到real-obj-y，multi-used-y等变量中</p>
+<p>real-obj-y是真正需要编译的目标集合，其中含有归档文件built-in.a</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># real-obj-y中的built-in.a都过滤出来，然后去重</span><br>subdir-builtin := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">filter</span> %/built-in.a, $(real-obj-y)</span>))<br>subdir-modorder := <span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(<span class="hljs-built_in">filter</span> %/modules.order, $(obj-m)</span>))<br><span class="hljs-comment"># 将subdir-builtin中的/built-in.a去掉</span><br><span class="hljs-section">$(subdir-builtin): <span class="hljs-variable">$(obj)</span>/%/built-in.a: <span class="hljs-variable">$(obj)</span>/% ;</span><br><span class="hljs-comment"># subdir-ym是需要递归的目录，没有后面的/</span><br><span class="hljs-comment"># 如果subdir-builtin中含有对应目录下的built-in.a，即$@/built-in.a</span><br><span class="hljs-comment"># 就将need-builtin置一</span><br>PHONY += $(subdir-ym)<br><span class="hljs-section">$(subdir-ym):</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$@</span> \<br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/, <span class="hljs-variable">$(KBUILD_SINGLE_TARGETS)</span>)</span>,single-build=) \<br>	need-builtin=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/built-in.a, $(subdir-builtin)</span>),1) \<br>	need-modorder=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/modules.order, $(subdir-modorder)</span>),1)<br></code></pre></td></tr></table></figure>
+
+<p>当这个__build目标更新过后，这个目录下的所有子目录都被编译完成了</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">__build: $(if <span class="hljs-variable">$(KBUILD_BUILTIN)</span>, $(targets-for-builtin)) \</span><br>	 <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(KBUILD_MODULES)</span>, $(targets-for-modules)</span>) \<br>	 $(subdir-ym) $(always-y)<br>	@:<br></code></pre></td></tr></table></figure>
+
+<p>回到顶层Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">descend: $(build-dirs)</span><br><span class="hljs-section">$(build-dirs): prepare</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$@</span> \<br>	single-build=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> $(<span class="hljs-built_in">filter</span>-out <span class="hljs-variable">$@</span>/, $(<span class="hljs-built_in">filter</span> <span class="hljs-variable">$@</span>/%, <span class="hljs-variable">$(KBUILD_SINGLE_TARGETS)</span>)</span>),1) \<br>	need-builtin=1 need-modorder=1<br></code></pre></td></tr></table></figure>
+
+<p>这里build-dirs是所有需要编译的目录，执行完成后，descend目标被更新</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-variable">$(<span class="hljs-built_in">sort</span> $(vmlinux-deps)</span> $(subdir-modorder)): descend ;<br></code></pre></td></tr></table></figure>
+
+<p>然后所有的vmlinux-deps目标也被更新了，因为这个规则没有命令</p>
+<p>一层一层回归</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">cmd_link-vmlinux =                                                 \<br>	<span class="hljs-variable">$(CONFIG_SHELL)</span> <span class="hljs-variable">$&lt;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(LD)</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(KBUILD_LDFLAGS)</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$(LDFLAGS_vmlinux)</span>&quot;</span>;    \<br>	<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(ARCH_POSTLINK)</span>, <span class="hljs-variable">$(MAKE)</span> -f <span class="hljs-variable">$(ARCH_POSTLINK)</span> <span class="hljs-variable">$@</span>, true)</span><br><br><span class="hljs-section">vmlinux: scripts/link-vmlinux.sh autoksyms_recursive $(vmlinux-deps) FORCE</span><br>	+<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,link-vmlinux)</span><br></code></pre></td></tr></table></figure>
+
+<p>最终调用link-vmlinux.sh脚本将所有的归档文件都链接为vmlinux，这样就生成了一个原始的内核，这是一个elf文件，不能被直接加载</p>
+<h1 id="三、bzImage流程"><a href="#三、bzImage流程" class="headerlink" title="三、bzImage流程"></a>三、bzImage流程</h1><p>我们都知道，在顶层Makefile里面，会包含架构中的Makefile，在包含架构Makefile之前，会有一个all:vmlinux</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">all: vmlinux</span><br>.......<br><span class="hljs-keyword">include</span> arch/<span class="hljs-variable">$(SRCARCH)</span>/Makefile<br></code></pre></td></tr></table></figure>
+
+<p>其中，架构的Makefile中，也有一个all目标</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">all: bzImage</span><br></code></pre></td></tr></table></figure>
+
+<p>根据Make的语法，all目标会先更新第一个出现的依赖，也就是顶层目录下的vmlinux，然后找到第二个依赖，也就是bzImage</p>
+<p>下面我们来看bzImage的构建流程</p>
+<p>首先</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-section">bzImage: vmlinux</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(CONFIG_X86_DECODER_SELFTEST)</span>,y)<br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=arch/x86/tools posttest<br><span class="hljs-keyword">endif</span><br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$(boot)</span> <span class="hljs-variable">$(KBUILD_IMAGE)</span><br>	<span class="hljs-variable">$(Q)</span>mkdir -p <span class="hljs-variable">$(objtree)</span>/arch/<span class="hljs-variable">$(UTS_MACHINE)</span>/boot<br>	<span class="hljs-variable">$(Q)</span>ln -fsn ../../x86/boot/bzImage   \   <span class="hljs-variable">$(objtree)</span>/arch/<span class="hljs-variable">$(UTS_MACHINE)</span>/boot/<span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>不用看ifeq宏包裹的部分，可知，bzImage依赖vmlinux，这个vmlinux没有前缀，说明它是顶层目录的vmlinux，也就是我们上一个流程生成的vmlinux</p>
+<p>然后会以boot目录作为obj，Makefile.build为Makefile文件，进去执行，相关定义如下</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">boot := arch/x86/boot<br><br>KBUILD_IMAGE := <span class="hljs-variable">$(boot)</span>/bzImage<br></code></pre></td></tr></table></figure>
+
+<p>进入到boot目录下之后，我们之前说过，Makefile.build会优先找Kbuild文件，然后才是Makefile文件，但是boot目录下没有Kbuild，因此将boot目录下的Makefile包含进来</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_image = BUILD   <span class="hljs-variable">$@</span><br>silent_redirect_image = &gt;/dev/null<br>cmd_image = <span class="hljs-variable">$(obj)</span>/tools/build <span class="hljs-variable">$(obj)</span>/setup.bin <span class="hljs-variable">$(obj)</span>/vmlinux.bin \<br>			       <span class="hljs-variable">$(obj)</span>/zoffset.h <span class="hljs-variable">$@</span> $(<span class="hljs-variable">$(quiet)</span>redirect_image)<br><br><span class="hljs-variable">$(obj)</span>/bzImage: <span class="hljs-variable">$(obj)</span>/setup.bin <span class="hljs-variable">$(obj)</span>/vmlinux.bin <span class="hljs-variable">$(obj)</span>/tools/build FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,image)</span><br>	@<span class="hljs-variable">$(kecho)</span> &#x27;Kernel: <span class="hljs-variable">$@</span> is ready&#x27; &#x27; (<span class="hljs-comment">#&#x27;`cat .version`&#x27;)&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，bzImage依赖boot目录下的setup.bin，vmlinux.bin，和boot目录下子目录tools里面的build，这个build是个.c文件</p>
+<p>来一个一个看吧，首先是setup.bin</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># 还记得么？subdir-变量会在Makefile.lib中处理为要递归编译的目录</span><br>subdir-		:= compressed<br><span class="hljs-comment"># setup变量，x86架构下实模式的代码</span><br>setup-y		+= a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o<br>setup-y		+= early_serial_console.o edd.o header.o main.o memory.o<br>setup-y		+= pm.o pmjump.o printf.o regs.o string.o tty.o video.o<br>setup-y		+= video-mode.o version.o<br>setup-<span class="hljs-variable">$(CONFIG_X86_APM_BOOT)</span> += apm.o<br><br><span class="hljs-comment"># The link order of the video-*.o modules can matter.  In particular,</span><br><span class="hljs-comment"># video-vga.o *must* be listed first, followed by video-vesa.o.</span><br><span class="hljs-comment"># Hardware-specific drivers should follow in the order they should be</span><br><span class="hljs-comment"># probed, and video-bios.o should typically be last.</span><br>setup-y		+= video-vga.o<br>setup-y		+= video-vesa.o<br>setup-y		+= video-bios.o<br><br>SETUP_OBJS = <span class="hljs-variable">$(<span class="hljs-built_in">addprefix</span> <span class="hljs-variable">$(obj)</span>/,$(setup-y)</span>)<br><br><span class="hljs-comment"># 使用setup.ld为链接脚本，链接实模式的代码</span><br>LDFLAGS_setup.elf	:= -m elf_i386 -T<br><span class="hljs-variable">$(obj)</span>/setup.elf: <span class="hljs-variable">$(src)</span>/setup.ld <span class="hljs-variable">$(SETUP_OBJS)</span> FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,ld)</span><br><br><span class="hljs-comment"># 简洁明了，setup.bin就是setup.elf通过objcopy变为二进制文件了</span><br>OBJCOPYFLAGS_setup.bin	:= -O binary<br><span class="hljs-variable">$(obj)</span>/setup.bin: <span class="hljs-variable">$(obj)</span>/setup.elf FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,objcopy)</span><br></code></pre></td></tr></table></figure>
+
+<p>接下来是vmlinux.bin</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">OBJCOPYFLAGS_vmlinux.bin := -O binary -R .note -R .comment -S<br><span class="hljs-variable">$(obj)</span>/vmlinux.bin: <span class="hljs-variable">$(obj)</span>/compressed/vmlinux FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,objcopy)</span><br>	<br><span class="hljs-variable">$(obj)</span>/compressed/vmlinux: FORCE<br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$(obj)</span>/compressed <span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>vmlinux.bin依赖boot&#x2F;compressed目录下的vmlinux，而boot&#x2F;compressed&#x2F;vmlinux则需要使用Makefile.build到compressed目录下去执行boot&#x2F;compressed&#x2F;vmlinux目标，注意，指定目标了哦，不再是__build默认目标了</p>
+<p>现在到compressed目录下，这个目录下也是只有Makefile，没有Kbuild文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># 到了compressed目录下，obj变成$(boot)/compressed了哦</span><br><span class="hljs-variable">$(obj)</span>/vmlinux: $(vmlinux-objs-y) $(efi-obj-y) FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,ld)</span><br></code></pre></td></tr></table></figure>
+
+<p>看到compressed&#x2F;vmlinux依赖vmlinux-objs-y和efi-obj-y，并调用链接工具将其组合为compressed&#x2F;vmlinux</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs makefile">vmlinux-objs-y := <span class="hljs-variable">$(obj)</span>/vmlinux.lds <span class="hljs-variable">$(obj)</span>/kernel_info.o <span class="hljs-variable">$(obj)</span>/head_<span class="hljs-variable">$(BITS)</span>.o \<br>	<span class="hljs-variable">$(obj)</span>/misc.o <span class="hljs-variable">$(obj)</span>/string.o <span class="hljs-variable">$(obj)</span>/cmdline.o <span class="hljs-variable">$(obj)</span>/error.o \<br>	<span class="hljs-variable">$(obj)</span>/piggy.o <span class="hljs-variable">$(obj)</span>/cpuflags.o<br><span class="hljs-comment"># 还有其他一些vmlinux-objs-y变量，这里不一一列出了</span><br></code></pre></td></tr></table></figure>
+
+<p>注意一个小细节，vmlinux.lds是放在第一个的，原因是</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile">LDFLAGS_vmlinux := -pie <span class="hljs-variable">$(<span class="hljs-built_in">call</span> ld-option, --no-dynamic-linker)</span><br><span class="hljs-keyword">ifdef</span> CONFIG_LD_ORPHAN_WARN<br>LDFLAGS_vmlinux += --orphan-handling=warn<br><span class="hljs-keyword">endif</span><br>LDFLAGS_vmlinux += -T<br></code></pre></td></tr></table></figure>
+
+<p>看到最后那个-T了么，LDFLAGS_vmlinux是ld_flags的末尾，其后紧跟着就是要链接的变量，这样-T就能直接跟着vmlinux.lds了，巧妙地指定了压缩目录下的链接脚本</p>
+<p>vmlinux-objs-y里面的目标大多有对应的源文件，直接编译就好，但是需要特别注意以下一个目标——piggy.o，他没有对应的源文件，但是有对应的规则</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_mkpiggy = MKPIGGY <span class="hljs-variable">$@</span><br>      cmd_mkpiggy = <span class="hljs-variable">$(obj)</span>/mkpiggy <span class="hljs-variable">$&lt;</span> &gt; <span class="hljs-variable">$@</span><br><br>targets += piggy.S<br><span class="hljs-variable">$(obj)</span>/piggy.S: <span class="hljs-variable">$(obj)</span>/vmlinux.bin.$(suffix-y) <span class="hljs-variable">$(obj)</span>/mkpiggy FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,mkpiggy)</span><br></code></pre></td></tr></table></figure>
+
+<p>这里依赖的mkpiggy是hostprogs变量，由Makefile.host提前编译好了</p>
+<p>我们发现他的依赖是compressed目录下的vmlinux.bin.$(suffix-y)，这个suffix-y是压缩方式，这里我们用gz格式压缩</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-variable">$(obj)</span>/vmlinux.bin.gz: $(vmlinux.bin.all-y) FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,gzip)</span><br></code></pre></td></tr></table></figure>
+
+<p>现在依赖是vmlinux.bin.all-y</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">vmlinux.bin.all-y := <span class="hljs-variable">$(obj)</span>/vmlinux.bin<br></code></pre></td></tr></table></figure>
+
+<p>注意，这个vmlinux.bin.all-y就是compressed目录下的vmlinux.bin</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">OBJCOPYFLAGS_vmlinux.bin :=  -R .comment -S<br><span class="hljs-variable">$(obj)</span>/vmlinux.bin: vmlinux FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,objcopy)</span><br></code></pre></td></tr></table></figure>
+
+<p>哦豁，是不是回来了，原来compressed目录下的vmlinux.bin就是根目录下的vmlinux通过objcopy生成的</p>
+<p>现在，所有的依赖都更新了，compressed目录下的vmlinux已经生成，现在我们要返回boot目录下的Makefile文件了</p>
+<p>还记得我们要回到哪里么？</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-variable">$(obj)</span>/compressed/vmlinux: FORCE<br>	<span class="hljs-variable">$(Q)</span><span class="hljs-variable">$(MAKE)</span> <span class="hljs-variable">$(build)</span>=<span class="hljs-variable">$(obj)</span>/compressed <span class="hljs-variable">$@</span><br></code></pre></td></tr></table></figure>
+
+<p>就是这里，我们现在的compressed&#x2F;vmlinux已经生成，也就是说，它可以通过objcopy变为boot目录下的vmlinux.bin啦</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile">OBJCOPYFLAGS_vmlinux.bin := -O binary -R .note -R .comment -S<br><span class="hljs-variable">$(obj)</span>/vmlinux.bin: <span class="hljs-variable">$(obj)</span>/compressed/vmlinux FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,objcopy)</span><br></code></pre></td></tr></table></figure>
+
+<p>于是，我们的bzImage流程也到了最后</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs makefile">quiet_cmd_image = BUILD   <span class="hljs-variable">$@</span><br>silent_redirect_image = &gt;/dev/null<br>cmd_image = <span class="hljs-variable">$(obj)</span>/tools/build <span class="hljs-variable">$(obj)</span>/setup.bin <span class="hljs-variable">$(obj)</span>/vmlinux.bin \<br>			       <span class="hljs-variable">$(obj)</span>/zoffset.h <span class="hljs-variable">$@</span> $(<span class="hljs-variable">$(quiet)</span>redirect_image)<br><br><span class="hljs-variable">$(obj)</span>/bzImage: <span class="hljs-variable">$(obj)</span>/setup.bin <span class="hljs-variable">$(obj)</span>/vmlinux.bin <span class="hljs-variable">$(obj)</span>/tools/build FORCE<br>	<span class="hljs-variable">$(<span class="hljs-built_in">call</span> if_changed,image)</span><br>	@<span class="hljs-variable">$(kecho)</span> &#x27;Kernel: <span class="hljs-variable">$@</span> is ready&#x27; &#x27; (<span class="hljs-comment">#&#x27;`cat .version`&#x27;)&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<p>这里的$(obj)&#x2F;tools&#x2F;build有对应的.c文件，这个build文件也是在hostprogs里面通过Makefile.host生成的</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs makefile">hostprogs	:= tools/build<br></code></pre></td></tr></table></figure>
+
+<p>现在，bzImage已经生成，并且在控制台显示出了</p>
+<blockquote>
+<p>‘Kernel: $@ is ready’ ‘ (#’<code>cat .version</code>‘)’</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/Kbuild/" class="print-no-link">#Kbuild</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Kbuild那些事儿</div>
+      <div>https://yill-z.github.io/2025/01/06/Kbuild/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Yill Zhang</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年1月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/01/06/ARM64%E6%9E%B6%E6%9E%84%E8%AE%BE%E5%A4%87%E6%A0%91%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" title="ARM64架构设备树初始化流程详解">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">ARM64架构设备树初始化流程详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/01/01/Make/" title="Make语言详解">
+                        <span class="hidden-mobile">Make语言详解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Yill-Z/Yill-Z.github.io');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

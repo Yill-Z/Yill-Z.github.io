@@ -1,0 +1,1009 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/Yill.jpg">
+  <link rel="icon" href="/img/Yill.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yill Zhang">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux设备驱动模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux设备驱动模型">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/06/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Yill&#39;s tech cabin.">
+<meta property="og:description" content="Linux设备驱动模型">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-06T15:29:28.000Z">
+<meta property="article:modified_time" content="2025-01-06T15:34:58.163Z">
+<meta property="article:author" content="Yill Zhang">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="kojb">
+<meta property="article:tag" content="device driver model">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Linux设备驱动模型 - Yill&#39;s tech cabin.</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yill-z.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yill&#39;s tech cabin.</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/universal.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux设备驱动模型"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-01-06 23:29" pubdate>
+          2025年1月6日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          62 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux设备驱动模型</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="linux设备驱动框架"><a href="#linux设备驱动框架" class="headerlink" title="linux设备驱动框架"></a>linux设备驱动框架</h1><h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p>Linux的设备驱动框架是以<code>bus</code>，<code>driver</code>，<code>device</code>，<code>class</code>为基石，<code>kobject</code>为基本元素所构成的，配合<code>sysfs</code>文件系统对操作系统软硬件进行组织，管理的框架。</p>
+<p>每个<code>kobject</code>都对应<code>sysfs</code>文件系统里面的一个目录，出现在该目录中的文件称为该对象的属性。</p>
+<h2 id="二、kobject，kset，subsystem"><a href="#二、kobject，kset，subsystem" class="headerlink" title="二、kobject，kset，subsystem"></a>二、kobject，kset，subsystem</h2><p><code>kobject</code>包含在一个层次化的组织当中，它可以有一个父对象，可以包含在一个<code>kset</code>对象中。</p>
+<h3 id="基本数据结构"><a href="#基本数据结构" class="headerlink" title="基本数据结构"></a>基本数据结构</h3><h4 id="kobject"><a href="#kobject" class="headerlink" title="kobject"></a>kobject</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 设备驱动程序模型的核心数据结构。对应于sysfs文件系统中每一个目录。</span><br><span class="hljs-comment"> * 它通常被放到设备驱动程序的一个大容器中。典型的容器有总线、设备及驱动程序描述符。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> &#123;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向容器名称，注意，这里是指针，其在注册时进行分配，注销时回收。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">char</span>			* k_name;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果容器名称不超过20个字符，就存在这里。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">char</span>			name[KOBJ_NAME_LEN];<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 容器的引用计数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kref</span>		<span class="hljs-title">kref</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 用于将kobject插入某个链表。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span>	<span class="hljs-title">entry</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向父kobject</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span>		* <span class="hljs-title">parent</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向包含的kset,kset是同类型的kobject结构的一个集合体。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset</span>		* <span class="hljs-title">kset</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向kobject的类型描述符。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobj_type</span>	* <span class="hljs-title">ktype</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向与kobject对应的sysfs文件的dentry数据结构。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dentry</span>		* <span class="hljs-title">dentry</span>;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset"><a href="#kset" class="headerlink" title="kset"></a>kset</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 嵌入相同类型结构的kobject集合。</span><br><span class="hljs-comment"> * 当创建一个kobject对象时，通常需要将它们加入到kset中。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset</span> &#123;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 所属子系统。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">subsystem</span>	* <span class="hljs-title">subsys</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 所包含的kobjec的类型。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobj_type</span>	* <span class="hljs-title">ktype</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 第一个kobject节点。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span>	<span class="hljs-title">list</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 嵌入的kobject，也就是说，</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span>		<span class="hljs-title">kobj</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 用于处理kobject结构的过滤和热插拨操作的回调函数表。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset_hotplug_ops</span>	* <span class="hljs-title">hotplug_ops</span>;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobj-type"><a href="#kobj-type" class="headerlink" title="kobj_type"></a>kobj_type</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 描述包含kobject对象的结构类型。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobj_type</span> &#123;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * kobject类型的release函数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">void</span> (*release)(<span class="hljs-keyword">struct</span> kobject *);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 实现对象属性的方法。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sysfs_ops</span>	* <span class="hljs-title">sysfs_ops</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当创建kobject时，赋予该对象的默认属性。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">attribute</span>	** <span class="hljs-title">default_attrs</span>;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>kset_hotplug_ops</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 控制热插拨事件的结构。由kset的hotplug_ops指向该结构。</span><br><span class="hljs-comment"> * 如果kset不包含一个指定的kobject，则在sysfs分层结构中进行搜索，直到找到一个包含有kset的kobject为止，然后使用这个kset的热插拨操作。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset_hotplug_ops</span> &#123;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 无论何时，当内核要为指定的kobject产生事件时，都要调用filter函数。如果filter函数返回0，将不产生事件。</span><br><span class="hljs-comment">	 * 因此，该函数给kset一个机会，用于决定是否向用户空间传递指定的事件。</span><br><span class="hljs-comment">	 * 使用此函数的一个例子是块设备子系统。在block_hotplug_filter中，只为kobject产生磁盘和分区事件，而不会为请求队列kobject产生事件。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> (*filter)(<span class="hljs-keyword">struct</span> kset *kset, <span class="hljs-keyword">struct</span> kobject *kobj);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 在调用用户空间的热插拨程序时，相关子系统的名字将作为唯一的参数传递给它。</span><br><span class="hljs-comment">	 * name方法负责提供此名字。它将返回一个适合传递给用户空间的字符串。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">char</span> *(*name)(<span class="hljs-keyword">struct</span> kset *kset, <span class="hljs-keyword">struct</span> kobject *kobj);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 任何热插拨脚本所需要知道的信息将通过环境变量传递。最后一个hotplug方法会在调用脚本前，提供添加环境变量的机会。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> (*hotplug)(<span class="hljs-keyword">struct</span> kset *kset, <span class="hljs-keyword">struct</span> kobject *kobj, <span class="hljs-type">char</span> **envp,<br>			<span class="hljs-type">int</span> num_envp, <span class="hljs-type">char</span> *buffer, <span class="hljs-type">int</span> buffer_size);<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsystem"><a href="#subsystem" class="headerlink" title="subsystem"></a>subsystem</h4><blockquote>
+<p>在高版本中，将其废弃，因为其与kset功能重复，读写信号量的功能被klist替代</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 子系统。通常显示在sysfs分层结构中的顶层。</span><br><span class="hljs-comment"> * 包含block_subsys、devices_subsys以及各种总线等子系统，对应于sys/block、sys/devices等目录。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">subsystem</span> &#123;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 下层对象集合。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset</span>		<span class="hljs-title">kset</span>;</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 访问子系统所用的读写信号量。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">rw_semaphore</span>	<span class="hljs-title">rwsem</span>;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-attribute"><a href="#subsys-attribute" class="headerlink" title="subsys_attribute"></a>subsys_attribute</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">subsys_attribute</span> &#123;</span><br>    <span class="hljs-comment">//属性本身</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">attribute</span> <span class="hljs-title">attr</span>;</span><br>    <span class="hljs-comment">//sysfs文件的读</span><br>	<span class="hljs-type">ssize_t</span> (*show)(<span class="hljs-keyword">struct</span> subsystem *, <span class="hljs-type">char</span> *);<br>    <span class="hljs-comment">//sysfs文件的写</span><br>	<span class="hljs-type">ssize_t</span> (*store)(<span class="hljs-keyword">struct</span> subsystem *, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *, <span class="hljs-type">size_t</span>); <br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="内部API"><a href="#内部API" class="headerlink" title="内部API"></a>内部API</h3><h4 id="kobject-name"><a href="#kobject-name" class="headerlink" title="kobject_name"></a>kobject_name</h4><blockquote>
+<p>返回其k_name，这是在这个kobj对象分配后才会指定的，其他情况下为NULL，可用用来判断kobj对象是否合法</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">char</span> * <span class="hljs-title function_">kobject_name</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> kobj-&gt;k_name;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="populate-dir"><a href="#populate-dir" class="headerlink" title="populate_dir"></a>populate_dir</h4><blockquote>
+<p>填充目录（kobject是一个目录，这个API使用默认属性建立该目录下的文件）</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">populate_dir</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>    <span class="hljs-comment">//得到该kobj的类型，里面有该kobj的默认属性</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobj_type</span> * <span class="hljs-title">t</span> =</span> get_ktype(kobj);<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">attribute</span> * <span class="hljs-title">attr</span>;</span><br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>	<span class="hljs-type">int</span> i;<br>	<span class="hljs-comment">//如果kobj的类型存在，并且其有默认属性</span><br>	<span class="hljs-keyword">if</span> (t &amp;&amp; t-&gt;default_attrs) &#123;<br>        <span class="hljs-comment">//kobj_type的默认属性是一个二级指针，意味着其可以有多个默认的属性，遍历其可用的属性，创建对应的属性文件，也就是这个kobj目录下的文件</span><br>		<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; (attr = t-&gt;default_attrs[i]) != <span class="hljs-literal">NULL</span>; i++) &#123;<br>            <span class="hljs-comment">//如果创建文件出错，就break掉，返回错误码</span><br>			<span class="hljs-keyword">if</span> ((error = sysfs_create_file(kobj,attr)))<br>				<span class="hljs-keyword">break</span>;<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="create-dir"><a href="#create-dir" class="headerlink" title="create_dir"></a>create_dir</h4><blockquote>
+<p>建立<code>kobject</code>对应的目录</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">create_dir</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">//注意，这里的kobject_name返回的是k_name，这个成员是分配其kobj对象时才会赋值，所以这个if判断可以检查kobj是否是一个合法的kobj</span><br>	<span class="hljs-keyword">if</span> (kobject_name(kobj)) &#123;<br>        <span class="hljs-comment">//建立kobj对象对应的目录</span><br>		error = sysfs_create_dir(kobj);<br>		<span class="hljs-keyword">if</span> (!error) &#123;<br>            <span class="hljs-comment">//若没有出错，填充其目录下的文件，也就是这个kobj的属性</span><br>			<span class="hljs-keyword">if</span> ((error = populate_dir(kobj)))<br>                <span class="hljs-comment">//如果出错，清理现场</span><br>				sysfs_remove_dir(kobj);<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="to-kobj"><a href="#to-kobj" class="headerlink" title="to_kobj"></a>to_kobj</h4><blockquote>
+<p>从链表节点得到其kobj</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kobject * <span class="hljs-title function_">to_kobj</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> list_head * entry)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> container_of(entry,<span class="hljs-keyword">struct</span> kobject,entry);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="get-kobj-path-length"><a href="#get-kobj-path-length" class="headerlink" title="get_kobj_path_length"></a>get_kobj_path_length</h4><blockquote>
+<p>得到kobj目录的路径长度</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">get_kobj_path_length</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject *kobj)</span><br>&#123;<br>    <span class="hljs-comment">//length初始为一，是因为kobj本身也是一个目录，在其后面也可以有一个&#x27;/&#x27;</span><br>	<span class="hljs-type">int</span> length = <span class="hljs-number">1</span>;<br>    <span class="hljs-comment">//从这个kobj本身开始</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">parent</span> =</span> kobj;<br><br>	<span class="hljs-comment">/* walk up the ancestors until we hit the one pointing to the </span><br><span class="hljs-comment">	 * root.</span><br><span class="hljs-comment">	 * Add 1 to strlen for leading &#x27;/&#x27; of each level.</span><br><span class="hljs-comment">	 */</span><br>    <span class="hljs-comment">//一级一级计算，从kobj本身开始，一直到/sys</span><br>	<span class="hljs-keyword">do</span> &#123;<br>		length += <span class="hljs-built_in">strlen</span>(kobject_name(parent)) + <span class="hljs-number">1</span>;<br>		parent = parent-&gt;parent;<br>	&#125; <span class="hljs-keyword">while</span> (parent);<br>	<span class="hljs-keyword">return</span> length;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="fill-kobj-path"><a href="#fill-kobj-path" class="headerlink" title="fill_kobj_path"></a>fill_kobj_path</h4><blockquote>
+<p>填充<code>kobject</code>的路径，第二个参数<code>path</code>是申请好的内存空间，用以存放<code>kobject</code>的绝对路径</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">fill_kobj_path</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject *kobj, <span class="hljs-type">char</span> *path, <span class="hljs-type">int</span> length)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">parent</span>;</span><br>	<span class="hljs-comment">//length先减一，为何？</span><br>    <span class="hljs-comment">//因为length是长度，但是在下面的使用中，是当作下标来用的，长度和下标相差1，因此将其减掉</span><br>	--length;<br>    <span class="hljs-comment">//从kobj开始，向其父节点遍历</span><br>	<span class="hljs-keyword">for</span> (parent = kobj; parent; parent = parent-&gt;parent) &#123;<br>        <span class="hljs-comment">//当前节点的kobj-&gt;k_name，注意，这个名字是没有&#x27;/&#x27;的</span><br>		<span class="hljs-type">int</span> cur = <span class="hljs-built_in">strlen</span>(kobject_name(parent));<br>		<span class="hljs-comment">/* back up enough to print this name with &#x27;/&#x27; */</span><br>        <span class="hljs-comment">//length-cur就是这个kobj-&gt;k_name应该在path字符串的第一个位置</span><br>		length -= cur;<br>        <span class="hljs-comment">//在这个位置，放入当前kobj-&gt;k_name</span><br>		<span class="hljs-built_in">strncpy</span> (path + length, kobject_name(parent), cur);<br>        <span class="hljs-comment">//在这个name的前一个位置，放一个&#x27;/&#x27;</span><br>		*(path + --length) = <span class="hljs-string">&#x27;/&#x27;</span>;<br>	&#125;<br><br>	pr_debug(<span class="hljs-string">&quot;%s: path = &#x27;%s&#x27;\n&quot;</span>,__FUNCTION__,path);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="to-kset"><a href="#to-kset" class="headerlink" title="to_kset"></a>to_kset</h4><blockquote>
+<p>由kobj得到其对应的kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kset * <span class="hljs-title function_">to_kset</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> kobj ? container_of(kobj,<span class="hljs-keyword">struct</span> kset,kobj) : <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-get"><a href="#kset-get" class="headerlink" title="kset_get"></a>kset_get</h4><blockquote>
+<p>若kset存在，递增这个kset-&gt;kobj的计数，并将其返回，否则返回NULL</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kset * <span class="hljs-title function_">kset_get</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> k ? to_kset(kobject_get(&amp;k-&gt;kobj)) : <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-put"><a href="#kset-put" class="headerlink" title="kset_put"></a>kset_put</h4><blockquote>
+<p>递减kset-&gt;kobj的计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">kset_put</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>	kobject_put(&amp;k-&gt;kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="get-ktype"><a href="#get-ktype" class="headerlink" title="get_ktype"></a>get_ktype</h4><blockquote>
+<p>如果这个kobj属于某个kset，并且这个kset有ktype，那么返回这个ktype，否则返回kobj-&gt;ktype</p>
+</blockquote>
+<blockquote>
+<p>由此可以看到，优先返回kset的ktype，因为这一个kset的kobj类型一致</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kobj_type * <span class="hljs-title function_">get_ktype</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * k)</span><br>&#123;<br>	<span class="hljs-keyword">if</span> (k-&gt;kset &amp;&amp; k-&gt;kset-&gt;ktype)<br>		<span class="hljs-keyword">return</span> k-&gt;kset-&gt;ktype;<br>	<span class="hljs-keyword">else</span> <br>		<span class="hljs-keyword">return</span> k-&gt;ktype;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="unlink"><a href="#unlink" class="headerlink" title="unlink"></a>unlink</h4><blockquote>
+<p>将一个kobj从其kset中移除</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">unlink</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>    <span class="hljs-comment">//如果kobj归属一个kset，就将其从kset的链表中删除，并且初始化entry</span><br>	<span class="hljs-keyword">if</span> (kobj-&gt;kset) &#123;<br>		down_write(&amp;kobj-&gt;kset-&gt;subsys-&gt;rwsem);<br>		list_del_init(&amp;kobj-&gt;entry);<br>		up_write(&amp;kobj-&gt;kset-&gt;subsys-&gt;rwsem);<br>	&#125;<br>    <span class="hljs-comment">//无论是否删除，都将这个kobj的计数减一</span><br>	kobject_put(kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="to-kset-1"><a href="#to-kset-1" class="headerlink" title="to_kset"></a>to_kset</h4><blockquote>
+<p>从kobj得到其kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kset * <span class="hljs-title function_">to_kset</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> kobj ? container_of(kobj,<span class="hljs-keyword">struct</span> kset,kobj) : <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-get-1"><a href="#kset-get-1" class="headerlink" title="kset_get"></a>kset_get</h4><blockquote>
+<p>主要是递增kset中的kobj的引用计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> kset * <span class="hljs-title function_">kset_get</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>    <span class="hljs-comment">//这里有一个注意的点，kobject_get的参数是k-&gt;kobj，代表kset的那个kobj，递增这个计数</span><br>	<span class="hljs-keyword">return</span> k ? to_kset(kobject_get(&amp;k-&gt;kobj)) : <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-put-1"><a href="#kset-put-1" class="headerlink" title="kset_put"></a>kset_put</h4><blockquote>
+<p>递减kset中的kobj的引用计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">kset_put</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>	kobject_put(&amp;k-&gt;kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobj-set-kset-s"><a href="#kobj-set-kset-s" class="headerlink" title="kobj_set_kset_s"></a>kobj_set_kset_s</h4><blockquote>
+<p>为某个对象设置其kset为子系统的kset，这个obj是内嵌有一个kobj对象的结构</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> kobj_set_kset_s(obj,subsys) \</span><br><span class="hljs-meta">	(obj)-&gt;kobj.kset = &amp;(subsys).kset</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-set-kset-s"><a href="#kset-set-kset-s" class="headerlink" title="kset_set_kset_s"></a>kset_set_kset_s</h4><blockquote>
+<p>子系统下面也是可以有子系统的，这种就是设置子系统的子系统，比如，bus子系统下面有pci子系统，这个宏是为这个子系统内嵌的kset的kobj的上级kset设置为某个子系统的kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> kset_set_kset_s(obj,subsys) \</span><br><span class="hljs-meta">	(obj)-&gt;kset.kobj.kset = &amp;(subsys).kset</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-set-kset"><a href="#subsys-set-kset" class="headerlink" title="subsys_set_kset"></a>subsys_set_kset</h4><blockquote>
+<p>设置这个对象的子系统的所属kset，一般用于注册总线</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> subsys_set_kset(obj,_subsys) \</span><br><span class="hljs-meta">	(obj)-&gt;subsys.kset.kobj.kset = &amp;(_subsys).kset</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-get"><a href="#subsys-get" class="headerlink" title="subsys_get"></a>subsys_get</h4><blockquote>
+<p>递增子系统的计数，其实就是子系统里面的kset的计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> subsystem * <span class="hljs-title function_">subsys_get</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> s ? container_of(kset_get(&amp;s-&gt;kset),<span class="hljs-keyword">struct</span> subsystem,kset) : <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-put"><a href="#subsys-put" class="headerlink" title="subsys_put"></a>subsys_put</h4><blockquote>
+<p>递减子系统的计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">subsys_put</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s)</span><br>&#123;<br>	kset_put(&amp;s-&gt;kset);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-release"><a href="#kobject-release" class="headerlink" title="kobject_release"></a>kobject_release</h4><blockquote>
+<p>回调函数，用来kobject_put时，如果计数变为0，将这个kobj资源释放</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">kobject_release</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kref *kref)</span><br>&#123;<br>	kobject_cleanup(container_of(kref, <span class="hljs-keyword">struct</span> kobject, kref));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="decl-subsys"><a href="#decl-subsys" class="headerlink" title="decl_subsys"></a>decl_subsys</h4><blockquote>
+<p>定义一个子系统</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> decl_subsys(_name,_type,_hotplug_ops) \</span><br><span class="hljs-meta">struct subsystem _name##_subsys = &#123; \</span><br><span class="hljs-meta">	.kset = &#123; \</span><br><span class="hljs-meta">		.kobj = &#123; .name = __stringify(_name) &#125;, \</span><br><span class="hljs-meta">		.ktype = _type, \</span><br><span class="hljs-meta">		.hotplug_ops =_hotplug_ops, \</span><br><span class="hljs-meta">	&#125; \</span><br><span class="hljs-meta">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="decl-subsys-name"><a href="#decl-subsys-name" class="headerlink" title="decl_subsys_name"></a>decl_subsys_name</h4><blockquote>
+<p>定义一个子系统，但是子系统名字和kobj名字不一样</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> decl_subsys_name(_varname,_name,_type,_hotplug_ops) \</span><br><span class="hljs-meta">struct subsystem _varname##_subsys = &#123; \</span><br><span class="hljs-meta">	.kset = &#123; \</span><br><span class="hljs-meta">		.kobj = &#123; .name = __stringify(_name) &#125;, \</span><br><span class="hljs-meta">		.ktype = _type, \</span><br><span class="hljs-meta">		.hotplug_ops =_hotplug_ops, \</span><br><span class="hljs-meta">	&#125; \</span><br><span class="hljs-meta">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><h4 id="kobject-get-path"><a href="#kobject-get-path" class="headerlink" title="kobject_get_path"></a>kobject_get_path</h4><blockquote>
+<p>得到这个kobj的完整路径名</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">char</span> *<span class="hljs-title function_">kobject_get_path</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject *kobj, <span class="hljs-type">int</span> gfp_mask)</span><br>&#123;<br>	<span class="hljs-type">char</span> *path;<br>	<span class="hljs-type">int</span> len;<br><br>	len = get_kobj_path_length(kobj);<br>	path = kmalloc(len, gfp_mask);<br>	<span class="hljs-keyword">if</span> (!path)<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-built_in">memset</span>(path, <span class="hljs-number">0x00</span>, len);<br>	fill_kobj_path(kobj, path, len);<br><br>	<span class="hljs-keyword">return</span> path;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-init"><a href="#kobject-init" class="headerlink" title="kobject_init"></a>kobject_init</h4><blockquote>
+<p>部分初始化kobj</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//可以看到，这里只初始化了计数器，entry节点，若kobj有kset，那么递增其计数，否则设为NULL</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">kobject_init</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	kref_init(&amp;kobj-&gt;kref);<br>	INIT_LIST_HEAD(&amp;kobj-&gt;entry);<br>	kobj-&gt;kset = kset_get(kobj-&gt;kset);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-get"><a href="#kobject-get" class="headerlink" title="kobject_get"></a>kobject_get</h4><blockquote>
+<p>通用的获取kobj对象的方法，会递增其计数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">struct</span> kobject * <span class="hljs-title function_">kobject_get</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-keyword">if</span> (kobj)<br>		kref_get(&amp;kobj-&gt;kref);<br>	<span class="hljs-keyword">return</span> kobj;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-add"><a href="#kobject-add" class="headerlink" title="kobject_add"></a>kobject_add</h4><blockquote>
+<p>增加一个kobj对象，也就是在sysfs的目录树中增加一个目录，这里很重要的一个动作是，赋值<code>kobj-&gt;k_name</code>，标识这个kobj是有效的，本函数也会构建好kobj和kset的层级关系</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kobject_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">parent</span>;</span><br><br>    <span class="hljs-comment">//如果kobj为NULL，返回错误</span><br>	<span class="hljs-keyword">if</span> (!(kobj = kobject_get(kobj)))<br>		<span class="hljs-keyword">return</span> -ENOENT;<br>    <span class="hljs-comment">//如果k_name没有值，就将kobj-&gt;name赋给它，k_name表示这个kobj是否被分配出去了</span><br>	<span class="hljs-keyword">if</span> (!kobj-&gt;k_name)<br>		kobj-&gt;k_name = kobj-&gt;name;<br>    <span class="hljs-comment">//得到kobj的parent，这个可以为NULL</span><br>	parent = kobject_get(kobj-&gt;parent);<br><br>	pr_debug(<span class="hljs-string">&quot;kobject %s: registering. parent: %s, set: %s\n&quot;</span>,<br>		 kobject_name(kobj), parent ? kobject_name(parent) : <span class="hljs-string">&quot;&lt;NULL&gt;&quot;</span>, <br>		 kobj-&gt;kset ? kobj-&gt;kset-&gt;kobj.name : <span class="hljs-string">&quot;&lt;NULL&gt;&quot;</span> );<br>	<span class="hljs-comment">//如果kobj属于一个kset</span><br>	<span class="hljs-keyword">if</span> (kobj-&gt;kset) &#123;<br>		down_write(&amp;kobj-&gt;kset-&gt;subsys-&gt;rwsem);<br>		<span class="hljs-comment">//此时如果没有parent，就将kset作为其parent</span><br>		<span class="hljs-keyword">if</span> (!parent)<br>			parent = kobject_get(&amp;kobj-&gt;kset-&gt;kobj);<br>		<br>        <span class="hljs-comment">//然后将kobj加入到kset的list中，表明这个kobj归属于这个kset</span><br>		list_add_tail(&amp;kobj-&gt;entry,&amp;kobj-&gt;kset-&gt;<span class="hljs-built_in">list</span>);<br>		up_write(&amp;kobj-&gt;kset-&gt;subsys-&gt;rwsem);<br>	&#125;<br>    <span class="hljs-comment">//设置kobj的parent</span><br>	kobj-&gt;parent = parent;<br>	<br>    <span class="hljs-comment">//在sysfs中创建kobj对应的目录（kobj对应目录，而不是文件！）</span><br>	error = create_dir(kobj);<br>    <span class="hljs-comment">//如果创建失败，释放这个kobj</span><br>	<span class="hljs-keyword">if</span> (error) &#123;<br>		<span class="hljs-comment">/* unlink does the kobject_put() for us */</span><br>        <span class="hljs-comment">//注意这里调用unlink的节点，unlink里面有一个if判断，如果这个kobj有kset，那么将其从kset里面删除并重置entry，而kobj的引用计数都是要减一的</span><br>		unlink(kobj);<span class="hljs-comment">//这里对应第七行的kobject_get，这里将其递减</span><br>        <span class="hljs-comment">//如果parent存在，也将其引用计数递减，注意想一下这里为何没有用unlink来处理parent，而是直接kobject_put，因为只是要清除本kobj，其kset的kset属于另一个kobj了</span><br>		<span class="hljs-keyword">if</span> (parent)<br>			kobject_put(parent);<span class="hljs-comment">//对应23行的kobject_get</span><br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">//如果没有出错，那么注册kobj的热插拔功能</span><br>		kobject_hotplug(kobj, KOBJ_ADD);<br>	&#125;<br><br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-register"><a href="#kobject-register" class="headerlink" title="kobject_register"></a>kobject_register</h4><blockquote>
+<p>初始化并添加一个kobj对象到kset，并增加其对应的sysfs文件</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kobject_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">//如果kobj为NULL，那么直接返回一个错误</span><br>	<span class="hljs-keyword">if</span> (kobj) &#123;<br>        <span class="hljs-comment">//否则，先初始化这个kobj的一部分，注意，kobject_init只初始化引用计数，entry，和kset</span><br>		kobject_init(kobj);<br>        <span class="hljs-comment">//通过kobject_add来确实新增这个kobj，主要是设置kobj-&gt;k_name和设置层级关系，增加sysfs中的对应的目录</span><br>		error = kobject_add(kobj);<br>		<span class="hljs-keyword">if</span> (error) &#123;<br>			printk(<span class="hljs-string">&quot;kobject_register failed for %s (%d)\n&quot;</span>,<br>			       kobject_name(kobj),error);<br>			dump_stack();<br>		&#125;<br>	&#125; <span class="hljs-keyword">else</span><br>		error = -EINVAL;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-set-name"><a href="#kobject-set-name" class="headerlink" title="kobject_set_name"></a>kobject_set_name</h4><blockquote>
+<p>设置kobject对象的名字</p>
+</blockquote>
+<blockquote>
+<p>这个函数为何要使用变参？</p>
+<p>答：这涉及到操作系统中对kobj对象的命名，对应于device结构中的bus_id，它可能是一个设备名本身，也可能是设备名+ID，这个ID取决于该设备所属的总线分配方式，比如该总线上有五个同类型设备，那么这五个设备的名字可能是xxx0，xxx1，…，xxx4。</p>
+<p>这意味着，kobj对象的name可能是多个部分构成的，那么一个可变参数的函数就很有必要了，它可以根据<code>fmt</code>的格式，拼凑出想要的字符串。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kobject_set_name</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj, <span class="hljs-type">const</span> <span class="hljs-type">char</span> * fmt, ...)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>	<span class="hljs-type">int</span> limit = KOBJ_NAME_LEN;<br>	<span class="hljs-type">int</span> need;<br>	va_list args;<span class="hljs-comment">//变参的必要部分</span><br>	<span class="hljs-type">char</span> * name;<br><br>	<span class="hljs-comment">/* </span><br><span class="hljs-comment">	 * First, try the static array </span><br><span class="hljs-comment">	 */</span><br>    <span class="hljs-comment">//看看这个名字能否放入数组kobj-&gt;name中</span><br>	va_start(args,fmt);<br>	need = vsnprintf(kobj-&gt;name,limit,fmt,args);<br>	va_end(args);<br>    <span class="hljs-comment">//如果格式字串的总长度可以放入kobj-&gt;name中，那么用局部变量name指向它</span><br>	<span class="hljs-keyword">if</span> (need &lt; limit) <br>		name = kobj-&gt;name;<br>	<span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-comment">/* </span><br><span class="hljs-comment">		 * Need more space? Allocate it and try again </span><br><span class="hljs-comment">		 */</span><br>        <span class="hljs-comment">//否则需要动态申请一段空间，大小为need+1，标识字符串末尾还有&#x27;\0&#x27;</span><br>		limit = need + <span class="hljs-number">1</span>;<br>		name = kmalloc(limit,GFP_KERNEL);<br>		<span class="hljs-keyword">if</span> (!name) &#123;<br>			error = -ENOMEM;<br>			<span class="hljs-keyword">goto</span> Done;<br>		&#125;<br>        <span class="hljs-comment">//再将其放入动态申请的name中</span><br>		va_start(args,fmt);<br>		need = vsnprintf(name,limit,fmt,args);<br>		va_end(args);<br><br>		<span class="hljs-comment">/* Still? Give up. */</span><br>        <span class="hljs-comment">//到这里是出了问题，一个兜底措施，如果need还大于等于limit，释放掉这段空间，防止内存泄漏</span><br>		<span class="hljs-keyword">if</span> (need &gt;= limit) &#123;<br>			kfree(name);<br>			error = -EFAULT;<br>			<span class="hljs-keyword">goto</span> Done;<br>		&#125;<br>	&#125;<br><br>	<span class="hljs-comment">/* Free the old name, if necessary. */</span><br>    <span class="hljs-comment">//释放旧名字，意味着这个kobj可能要变名称了，只有k_name表示该kobj的真实名字</span><br>	<span class="hljs-keyword">if</span> (kobj-&gt;k_name &amp;&amp; kobj-&gt;k_name != kobj-&gt;name)<br>		kfree(kobj-&gt;k_name);<br><br>	<span class="hljs-comment">/* Now, set the new name */</span><br>    <span class="hljs-comment">//将新名字赋给k_name</span><br>	kobj-&gt;k_name = name;<br> Done:<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-rename"><a href="#kobject-rename" class="headerlink" title="kobject_rename"></a>kobject_rename</h4><blockquote>
+<p>重命名kobj</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kobject_rename</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj, <span class="hljs-type">char</span> *new_name)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-comment">//注意，kobj要用kobject_get来获取，使用结束后用kobject_put来释放</span><br>	kobj = kobject_get(kobj);<br>	<span class="hljs-keyword">if</span> (!kobj)<br>		<span class="hljs-keyword">return</span> -EINVAL;<br>    <span class="hljs-comment">//将sysfs中的kobj的目录名进行修改</span><br>	error = sysfs_rename_dir(kobj, new_name);<br>    <span class="hljs-comment">//释放kobj</span><br>	kobject_put(kobj);<br><br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-del"><a href="#kobject-del" class="headerlink" title="kobject_del"></a>kobject_del</h4><blockquote>
+<p>删除kobj对象，如果它在一个kset中，也将其从kset的list中删除</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kobject_del</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	kobject_hotplug(kobj, KOBJ_REMOVE);<span class="hljs-comment">//热插拔的处理</span><br>	sysfs_remove_dir(kobj);<span class="hljs-comment">//在sysfs中删除这个kobj</span><br>	unlink(kobj);<span class="hljs-comment">//将这个kobj本身删除掉</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-unregister"><a href="#kobject-unregister" class="headerlink" title="kobject_unregister"></a>kobject_unregister</h4><blockquote>
+<p>注销一个kobj对象</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kobject_unregister</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	pr_debug(<span class="hljs-string">&quot;kobject %s: unregistering\n&quot;</span>,kobject_name(kobj));<br>	kobject_del(kobj);<span class="hljs-comment">//删除kobj对象</span><br>	kobject_put(kobj);<span class="hljs-comment">//递减其计数</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-cleanup"><a href="#kobject-cleanup" class="headerlink" title="kobject_cleanup"></a>kobject_cleanup</h4><blockquote>
+<p>释放kobj对象对应的资源，通过其注册时的<code>kobj-&gt;ktype-&gt;release</code>函数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kobject_cleanup</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobj_type</span> * <span class="hljs-title">t</span> =</span> get_ktype(kobj);<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kset</span> * <span class="hljs-title">s</span> =</span> kobj-&gt;kset;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">parent</span> =</span> kobj-&gt;parent;<br><br>	pr_debug(<span class="hljs-string">&quot;kobject %s: cleaning up\n&quot;</span>,kobject_name(kobj));<br>	<span class="hljs-comment">//如果k_name ！= name，直接释放k_name，因为后面要将其置空，避免内存泄漏，那么可以想一想，如果这俩相等呢？</span><br>    <span class="hljs-comment">//如果相等，可以看看kobject_add和kobject_set_name这两个函数，此时，kobj-&gt;k_name就是指向kobj-&gt;name的指针，因此不用kfree</span><br>    <span class="hljs-keyword">if</span> (kobj-&gt;k_name != kobj-&gt;name)<br>		kfree(kobj-&gt;k_name);<br>	kobj-&gt;k_name = <span class="hljs-literal">NULL</span>;<br>    <span class="hljs-comment">//如果release存在，就调用其做一些该设备特殊的操作</span><br>	<span class="hljs-keyword">if</span> (t &amp;&amp; t-&gt;release)<br>		t-&gt;release(kobj);<br>    <span class="hljs-comment">//如果这个kobj归属于某个kset，那么需要清除该kobj在这个kset中的痕迹</span><br>	<span class="hljs-keyword">if</span> (s)<br>		kset_put(s);<br>    <span class="hljs-comment">//如果其parent存在，递减其parent的计数，因为递增一个kobj计数时，其parent的计数也要递增</span><br>	<span class="hljs-keyword">if</span> (parent) <br>		kobject_put(parent);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kobject-put"><a href="#kobject-put" class="headerlink" title="kobject_put"></a>kobject_put</h4><blockquote>
+<p>递减kobj的计数，如果降为0，调用kobject_release</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kobject_put</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kobject * kobj)</span><br>&#123;<br>	<span class="hljs-keyword">if</span> (kobj)<br>		kref_put(&amp;kobj-&gt;kref, kobject_release);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-init"><a href="#kset-init" class="headerlink" title="kset_init"></a>kset_init</h4><blockquote>
+<p>初始化一个kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kset_init</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>    <span class="hljs-comment">//初始化其内嵌的kobj</span><br>	kobject_init(&amp;k-&gt;kobj);<br>    <span class="hljs-comment">//初始化其list，此时没有包含的kobj</span><br>	INIT_LIST_HEAD(&amp;k-&gt;<span class="hljs-built_in">list</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-add"><a href="#kset-add" class="headerlink" title="kset_add"></a>kset_add</h4><blockquote>
+<p>增加一个kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kset_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>    <span class="hljs-comment">//如果这个kset没有上级节点（parent和kset两重保障），并且这个kset归属于某个子系统，那么将其parent设置为子系统</span><br>	<span class="hljs-keyword">if</span> (!k-&gt;kobj.parent &amp;&amp; !k-&gt;kobj.kset &amp;&amp; k-&gt;subsys)<br>		k-&gt;kobj.parent = &amp;k-&gt;subsys-&gt;kset.kobj;<br>	<span class="hljs-comment">//剩下的就是增加kobj了</span><br>	<span class="hljs-keyword">return</span> kobject_add(&amp;k-&gt;kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-register"><a href="#kset-register" class="headerlink" title="kset_register"></a>kset_register</h4><blockquote>
+<p>注册kset</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kset_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>	kset_init(k);<br>	<span class="hljs-keyword">return</span> kset_add(k);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-unregister"><a href="#kset-unregister" class="headerlink" title="kset_unregister"></a>kset_unregister</h4><blockquote>
+<p>注销kset，其实就是注销kset中的kobj而已</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">kset_unregister</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>	kobject_unregister(&amp;k-&gt;kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="kset-find-obj"><a href="#kset-find-obj" class="headerlink" title="kset_find_obj"></a>kset_find_obj</h4><blockquote>
+<p>在kset中搜索一个对象（遍历kset-&gt;list）</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">struct</span> kobject * <span class="hljs-title function_">kset_find_obj</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * kset, <span class="hljs-type">const</span> <span class="hljs-type">char</span> * name)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> * <span class="hljs-title">entry</span>;</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">ret</span> =</span> <span class="hljs-literal">NULL</span>;<br><br>    <span class="hljs-comment">//链表操作，使用信号量保护链表</span><br>	down_read(&amp;kset-&gt;subsys-&gt;rwsem);<br>    <span class="hljs-comment">//遍历kset-&gt;list</span><br>	list_for_each(entry,&amp;kset-&gt;<span class="hljs-built_in">list</span>) &#123;<br>		<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> * <span class="hljs-title">k</span> =</span> to_kobj(entry);<br>        <span class="hljs-comment">//第一个条件是判定这个kobj是否存在，第二个是看是否是查找的目标</span><br>		<span class="hljs-keyword">if</span> (kobject_name(k) &amp;&amp; !<span class="hljs-built_in">strcmp</span>(kobject_name(k),name)) &#123;<br>            <span class="hljs-comment">//如果找到了，递增这个kobj计数，然后跳出</span><br>			ret = kobject_get(k);<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br>	&#125;<br>	up_read(&amp;kset-&gt;subsys-&gt;rwsem);<br>    <span class="hljs-comment">//如果遍历完都没有找到，则这里返回的是NULL</span><br>	<span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsystem-init"><a href="#subsystem-init" class="headerlink" title="subsystem_init"></a>subsystem_init</h4><blockquote>
+<p>初始化一个子系统</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//子系统里面其实就一个读写信号量，一个kset，也就是初始化这俩就行</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">subsystem_init</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s)</span><br>&#123;<br>	init_rwsem(&amp;s-&gt;rwsem);<br>	kset_init(&amp;s-&gt;kset);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsystem-register"><a href="#subsystem-register" class="headerlink" title="subsystem_register"></a>subsystem_register</h4><blockquote>
+<p>注册一个子系统</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//根据子系统的数据结构来看，注册一个子系统需要干些什么？</span><br><span class="hljs-comment">//注册时，需要填写其层级关系</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">subsystem_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s)</span><br>&#123;<br>	<span class="hljs-type">int</span> error;<br><br>	subsystem_init(s);<br>    <span class="hljs-comment">//上一行的子系统初始化是没有赋值子系统的名字的，因此，这里注册子系统时，子系统的名字是用户提供</span><br>	pr_debug(<span class="hljs-string">&quot;subsystem %s: registering\n&quot;</span>,s-&gt;kset.kobj.name);<br>	<span class="hljs-comment">//通过kset_add填写子系统的层级关系，如果填写成功</span><br>	<span class="hljs-keyword">if</span> (!(error = kset_add(&amp;s-&gt;kset))) &#123;<br>        <span class="hljs-comment">//如果这个子系统本身没有归属，就将其归属到其自身</span><br>		<span class="hljs-keyword">if</span> (!s-&gt;kset.subsys)<br>			s-&gt;kset.subsys = s;<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h4 id="subsystem-unregister"><a href="#subsystem-unregister" class="headerlink" title="subsystem_unregister"></a>subsystem_unregister</h4><blockquote>
+<p>注销子系统</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//直接注销kset即可</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">subsystem_unregister</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s)</span><br>&#123;<br>	pr_debug(<span class="hljs-string">&quot;subsystem %s: unregistering\n&quot;</span>,s-&gt;kset.kobj.name);<br>	kset_unregister(&amp;s-&gt;kset);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-create-file"><a href="#subsys-create-file" class="headerlink" title="subsys_create_file"></a>subsys_create_file</h4><blockquote>
+<p>导出sysfs属性文件</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">subsys_create_file</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s, <span class="hljs-keyword">struct</span> subsys_attribute * a)</span><br>&#123;<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>	<span class="hljs-keyword">if</span> (subsys_get(s)) &#123;<br>        <span class="hljs-comment">//创建子系统的属性文件</span><br>		error = sysfs_create_file(&amp;s-&gt;kset.kobj,&amp;a-&gt;attr);<br>		subsys_put(s);<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="subsys-remove-file"><a href="#subsys-remove-file" class="headerlink" title="subsys_remove_file"></a>subsys_remove_file</h4><blockquote>
+<p>移除sysfs属性文件</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">subsys_remove_file</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> subsystem * s, <span class="hljs-keyword">struct</span> subsys_attribute * a)</span><br>&#123;<br>	<span class="hljs-keyword">if</span> (subsys_get(s)) &#123;<br>		sysfs_remove_file(&amp;s-&gt;kset.kobj,&amp;a-&gt;attr);<br>		subsys_put(s);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、kobj体系流程梳理"><a href="#三、kobj体系流程梳理" class="headerlink" title="三、kobj体系流程梳理"></a>三、kobj体系流程梳理</h2><h3 id="子系统注册流程"><a href="#子系统注册流程" class="headerlink" title="子系统注册流程"></a>子系统注册流程</h3><p>在梳理注册流程时，需要谨记所涉及到的数据结构内容。</p>
+<blockquote>
+<p>注册最重要的功能就是为你新增的内容构建其层级关系</p>
+</blockquote>
+<p><code>subsystem_register</code>的参数是一个子系统结构体指针，其中有一个读写信号量和一个<code>kset</code>，因此在注册时，使用<code>subsystem_init</code>来先初始化这个子系统结构，其内容分别是初始化读写信号量和<code>kset</code>，这个<code>kset</code>是内嵌到子系统结构体中的，而<code>kset</code>中又内嵌了一个<code>kobj</code>表示其自身，因此这个<code>kobj</code>也要初始化，还有<code>kset</code>中的<code>list</code>链表结构，表示这个<code>kset</code>没有包含任何子节点。</p>
+<p><code>kobj</code>的初始化则是初始化其计数器，表示<code>kobj</code>自身的链表结点，最后，重点来了，这个<code>kobj</code>如果有其上级节点，就将其上级节点的<code>kobj</code>计数加一，举个例子，比如一个<code>kset</code>含有5个<code>kobj</code>子节点，那么这个<code>kset</code> 本身的<code>kobj</code>的计数应该是6，包含<code>kset</code>本身。</p>
+<p>此时<code>subsystem_init</code>的流程走完，<code>subsystem</code>结构的基础内容已被填充（其实主要是链表，信号量和计数的初始化），接下来，这个新增的子系统需要添加到<code>/sys</code>的树中，通过的就是<code>kset_add</code>，因为<code>subsystem</code>本身的存在是通过<code>kset</code>来表示的，这也是高版本中删除了<code>subsystem</code>的原因。</p>
+<p><code>kset_add</code>中，会进行一个判断，如果你新增的这个<code>kset</code>没有<code>parent</code>，也没有上级<code>kset</code>，但是有所属的子系统，那么将这个<code>kset</code>的<code>parent</code>设置为这个子系统，注意，这里并没有为其上级<code>kset</code>赋值，这种情况一般对应于某个<code>kset</code>直接挂在子系统下，除了顶级子系统，其他节点都应该在树中的某个位置。</p>
+<p>在初始化<code>devices</code>子系统时，其<code>parent</code>和上级<code>kset</code>均为NULL，但是，没有其所属子系统，因此顶级子系统是没有<code>parent</code>和<code>kset</code>的。</p>
+<p>随后调用<code>kobject_add</code>，因为<code>kobj</code>是基石，整个模型是依据<code>kobj</code>构建的，对子系统，<code>kset</code>的操作，最终都会落到<code>kobj</code>上。<code>kobject_add</code>中最重要的操作，就是给<code>k_name</code>赋值，因为<code>kobj-&gt;name</code>一般是静态声明时写好的，但是注册是动态的，如何判断这个<code>kobj</code>已经注册了呢？就是在<code>kobject_add</code>中为<code>k_name</code>赋值的操作来声明，这个<code>kobj</code>已经注册了。</p>
+<p>还要通过<code>kobject_get</code>来递增<code>kobj</code>的统计计数，如果其<code>parent</code>存在的话，也需要递增其计数。</p>
+<p>然后，如果这个<code>kobj</code>归属于某个<code>kset</code>，就将这个<code>kobj</code>加到其所属<code>kset</code>的<code>list</code>链表中，此时，其所属<code>kset</code>就是这个<code>kobj</code>的<code>parent</code>，所以此时，如果之前其<code>parent</code>不存在的话，这里将其<code>parent</code>设置为其<code>kset</code>的<code>kobj</code>。</p>
+<p>还记得之前说的<code>kobj</code>就是一个目录么？然后为这个<code>kobj</code>在<code>/sys</code>中创建对应的目录。</p>
+<p>回到<code>subsystem_register</code>，如果创建<code>kset</code>成功，则error返回0，满足if的条件，那么如果这个子系统没有归属的子系统时，就将其子系统设置为其自身，至此，子系统注册流程结束。</p>
+<blockquote>
+<p>以devices子系统为例，在其注册完成后，其s-&gt;kset-&gt;kobj-&gt;parent&#x3D;NULL，s-&gt;kset-&gt;kobj-&gt;kset&#x3D;NULL，s-&gt;kset-&gt;subsys&#x3D;s。可以看到，顶级子系统没有parent，没有kset，但是有subsys</p>
+</blockquote>
+<h4 id="例子：devices-init"><a href="#例子：devices-init" class="headerlink" title="例子：devices_init"></a>例子：devices_init</h4><blockquote>
+<p>设备子系统初始化，即一级目录devices</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> __init <span class="hljs-title function_">devices_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> subsystem_register(&amp;devices_subsys);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里初始化一个设备子系统，其中的<code>devices_subsys</code>由宏生成</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">decl_subsys(devices, &amp;ktype_device, &amp;device_hotplug_ops);<br></code></pre></td></tr></table></figure>
+
+<p>它声明了一个子系统结构体，并将其kset进行赋值，分别是kset-&gt;kobj-&gt;name，kset-&gt;ktype，kset-&gt;hotplug_ops。</p>
+<p>有一个值得注意的小细节，devices子系统是顶层子系统，因此没有上级节点，在注册时，这个子系统的<code>subsys-&gt;kset-&gt;kobj-&gt;parent=NULL</code>，作为对比，当注册<code>system</code>子系统时，由于该子系统归属于<code>devices</code>子系统， 因此在其注册时，这个区别会在kset_add时显示出来</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//声明system子系统</span><br>decl_subsys(system, &amp;ktype_sysdev, <span class="hljs-literal">NULL</span>);<br><span class="hljs-type">int</span> __init <span class="hljs-title function_">system_bus_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-comment">//这里注意，由于这个子系统存在上级子系统，那么其parent要设置好，而这个子系统归属于devices子系统，其parent就是devices_subsys.kset.kobj</span><br>	system_subsys.kset.kobj.parent = &amp;devices_subsys.kset.kobj;<br>	<span class="hljs-keyword">return</span> subsystem_register(&amp;system_subsys);<br>&#125;<br><span class="hljs-type">int</span> <span class="hljs-title function_">kset_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kset * k)</span><br>&#123;<br>    <span class="hljs-comment">//看这里的区别，如果其有上级节点，就不赋值parent，否则没有，但是有归属子系统，就将其上级节点设为这个子系统</span><br>	<span class="hljs-keyword">if</span> (!k-&gt;kobj.parent &amp;&amp; !k-&gt;kobj.kset &amp;&amp; k-&gt;subsys)<br>		k-&gt;kobj.parent = &amp;k-&gt;subsys-&gt;kset.kobj;<br><br>	<span class="hljs-keyword">return</span> kobject_add(&amp;k-&gt;kobj);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="bus-init"><a href="#bus-init" class="headerlink" title="bus_init"></a>bus_init</h4><blockquote>
+<p>总线子系统初始化，即一级目录bus</p>
+</blockquote>
+<p>同<code>devices_init</code>差不多</p>
+<h2 id="四、linux驱动模型"><a href="#四、linux驱动模型" class="headerlink" title="四、linux驱动模型"></a>四、linux驱动模型</h2><h3 id="driver-init——驱动模型初始化"><a href="#driver-init——驱动模型初始化" class="headerlink" title="driver_init——驱动模型初始化"></a>driver_init——驱动模型初始化</h3><p>linux的驱动初始化由<code>driver_init</code>开始，该函数准备好驱动框架，注册好一些<code>/sys</code>目录下的一级目录，比如<code>devices</code>，<code>bus</code>，<code>class</code>，等等。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> __init <span class="hljs-title function_">driver_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">/* These are the core pieces */</span><br>	devices_init(); <span class="hljs-comment">//devices目录</span><br>	buses_init();  <span class="hljs-comment">//bus目录</span><br>	classes_init(); <span class="hljs-comment">//class目录</span><br>	firmware_init(); <span class="hljs-comment">//firmware目录</span><br><br>	<span class="hljs-comment">/* These are also core pieces, but must come after the</span><br><span class="hljs-comment">	 * core core pieces.</span><br><span class="hljs-comment">	 */</span><br>	platform_bus_init(); <span class="hljs-comment">//platform目录</span><br>	system_bus_init(); <span class="hljs-comment">//devices下的system目录</span><br>	cpu_dev_init();  <span class="hljs-comment">//cpu目录</span><br>	attribute_container_init();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后在<code>do_initcalls</code>里面进行具体某个驱动的注册。</p>
+<h3 id="bus-register——总线注册"><a href="#bus-register——总线注册" class="headerlink" title="bus_register——总线注册"></a>bus_register——总线注册</h3><p>向系统注册一个总线，会被增加到<code>/sys/bus</code>目录中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">bus_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> bus_type * bus)</span><br>&#123;<br>	<span class="hljs-type">int</span> retval;<br>	<span class="hljs-comment">//这里其实就是设置总线内嵌的kobj的名字</span><br>	retval = kobject_set_name(&amp;bus-&gt;subsys.kset.kobj, <span class="hljs-string">&quot;%s&quot;</span>, bus-&gt;name);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> out;<br>	<span class="hljs-comment">//这里是设置这个总线所属的kset，即：声明这个总线是属于总线子系统的！</span><br>    <span class="hljs-comment">//等价于bus-&gt;subsys-&gt;kset-&gt;kobj-&gt;kset = bus_subsys.kset</span><br>	subsys_set_kset(bus, bus_subsys);<br>    <span class="hljs-comment">//向系统注册这个总线</span><br>	retval = subsystem_register(&amp;bus-&gt;subsys);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> out;<br>	<span class="hljs-comment">//设置总线包含的device的名字（这里的devices是个kset，它还没有设置名字）</span><br>	kobject_set_name(&amp;bus-&gt;devices.kobj, <span class="hljs-string">&quot;devices&quot;</span>);<br>    <span class="hljs-comment">//devices这个kset的子系统</span><br>	bus-&gt;devices.subsys = &amp;bus-&gt;subsys;<br>    <span class="hljs-comment">//注册这个kset</span><br>	retval = kset_register(&amp;bus-&gt;devices);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> bus_devices_fail;<br>	<span class="hljs-comment">//同理，driver这个kset的设置</span><br>	kobject_set_name(&amp;bus-&gt;drivers.kobj, <span class="hljs-string">&quot;drivers&quot;</span>);<br>	bus-&gt;drivers.subsys = &amp;bus-&gt;subsys;<br>	bus-&gt;drivers.ktype = &amp;ktype_driver;<br>	retval = kset_register(&amp;bus-&gt;drivers);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> bus_drivers_fail;<br>    <span class="hljs-comment">//增加这个总线的属性</span><br>	bus_add_attrs(bus);<br><br>	pr_debug(<span class="hljs-string">&quot;bus type &#x27;%s&#x27; registered\n&quot;</span>, bus-&gt;name);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br>bus_drivers_fail:<br>	kset_unregister(&amp;bus-&gt;devices);<br>bus_devices_fail:<br>	subsystem_unregister(&amp;bus-&gt;subsys);<br>out:<br>	<span class="hljs-keyword">return</span> retval;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="device-register——设备注册"><a href="#device-register——设备注册" class="headerlink" title="device_register——设备注册"></a>device_register——设备注册</h3><p>向系统注册一个设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">device_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device *dev)</span><br>&#123;<br>    <span class="hljs-comment">//初始化这个设备</span><br>	device_initialize(dev);<br>    <span class="hljs-comment">//将设备增加到某个总线中</span><br>	<span class="hljs-keyword">return</span> device_add(dev);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>设备的初始化</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">device_initialize</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device *dev)</span><br>&#123;<br>    <span class="hljs-comment">//首先，设置这个设备所属的kset，设备肯定要属于一个设备子系统</span><br>	kobj_set_kset_s(dev, devices_subsys);<br>    <span class="hljs-comment">//初始化设备 内嵌的kobj</span><br>	kobject_init(&amp;dev-&gt;kobj);<br>    <span class="hljs-comment">//初始化相关链表</span><br>	INIT_LIST_HEAD(&amp;dev-&gt;node);<span class="hljs-comment">//用来串联兄弟设备</span><br>	INIT_LIST_HEAD(&amp;dev-&gt;children);<span class="hljs-comment">//子设备挂在这个节点</span><br>	INIT_LIST_HEAD(&amp;dev-&gt;driver_list);<span class="hljs-comment">//指向驱动链表</span><br>	INIT_LIST_HEAD(&amp;dev-&gt;bus_list);<span class="hljs-comment">//指向同一总线的其他设备</span><br>	INIT_LIST_HEAD(&amp;dev-&gt;dma_pools);<span class="hljs-comment">//DMA缓冲池链表的首部</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>增加一个设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">device_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device *dev)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">device</span> *<span class="hljs-title">parent</span> =</span> <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-type">int</span> error = -EINVAL;<br>	<br>    <span class="hljs-comment">//递增计数器</span><br>	dev = get_device(dev);<br>    <span class="hljs-comment">//判断bus_id是否存在，这是一个类似于k_name的结构，这个设备被注册后，会分配一个bus_id，这个id表明设备名字+编号，比如这个bus上挂了五个同类串口设备，那么这五个设备的bus_id可能是serial1,serial2,...</span><br>	<span class="hljs-keyword">if</span> (!dev || !<span class="hljs-built_in">strlen</span>(dev-&gt;bus_id))<br>		<span class="hljs-keyword">goto</span> Error;<br>	<span class="hljs-comment">//递增其父设备的计数</span><br>	parent = get_device(dev-&gt;parent);<br><br>	pr_debug(<span class="hljs-string">&quot;DEV: registering device: ID = &#x27;%s&#x27;\n&quot;</span>, dev-&gt;bus_id);<br><br>	<span class="hljs-comment">/* first, register with generic layer. */</span><br>    <span class="hljs-comment">//将bus_id的名字赋给这个设备内嵌的kobj</span><br>	kobject_set_name(&amp;dev-&gt;kobj, <span class="hljs-string">&quot;%s&quot;</span>, dev-&gt;bus_id);<br>    <span class="hljs-comment">//如果存在父设备，就将其设备的kobj也设置父节点</span><br>	<span class="hljs-keyword">if</span> (parent)<br>		dev-&gt;kobj.parent = &amp;parent-&gt;kobj;<br><br>    <span class="hljs-comment">//增加这个kobj</span><br>	<span class="hljs-keyword">if</span> ((error = kobject_add(&amp;dev-&gt;kobj)))<br>		<span class="hljs-keyword">goto</span> Error;<br>    <span class="hljs-comment">//电源管理相关</span><br>	<span class="hljs-keyword">if</span> ((error = device_pm_add(dev)))<br>		<span class="hljs-keyword">goto</span> PMError;<br>    <span class="hljs-comment">//让这个总线增加这个设备</span><br>	<span class="hljs-keyword">if</span> ((error = bus_add_device(dev)))<br>		<span class="hljs-keyword">goto</span> BusError;<br>	down_write(&amp;devices_subsys.rwsem);<br>    <span class="hljs-comment">//如果存在父设备，就将这个设备加入到父设备的children的链表中</span><br>	<span class="hljs-keyword">if</span> (parent)<br>		list_add_tail(&amp;dev-&gt;node, &amp;parent-&gt;children);<br>	up_write(&amp;devices_subsys.rwsem);<br><br>	<span class="hljs-comment">/* notify platform of device entry */</span><br>    <span class="hljs-comment">//平台设备的通知链</span><br>	<span class="hljs-keyword">if</span> (platform_notify)<br>		platform_notify(dev);<br> Done:<br>	put_device(dev);<br>	<span class="hljs-keyword">return</span> error;<br> BusError:<br>	device_pm_remove(dev);<br> PMError:<br>	kobject_del(&amp;dev-&gt;kobj);<br> Error:<br>	<span class="hljs-keyword">if</span> (parent)<br>		put_device(parent);<br>	<span class="hljs-keyword">goto</span> Done;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>总线去增加这个设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">bus_add_device</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device * dev)</span><br>&#123;<br>    <span class="hljs-comment">//得到这个设备的总线</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">bus_type</span> * <span class="hljs-title">bus</span> =</span> get_bus(dev-&gt;bus);<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>	<br>    <span class="hljs-comment">//如果这个总线存在，不存在就没啥操作了</span><br>	<span class="hljs-keyword">if</span> (bus) &#123;<br>		down_write(&amp;dev-&gt;bus-&gt;subsys.rwsem);<br>		pr_debug(<span class="hljs-string">&quot;bus %s: add device %s\n&quot;</span>, bus-&gt;name, dev-&gt;bus_id);<br>        <span class="hljs-comment">//将这个设备增加到该设备所属的总线的设备链表中</span><br>		list_add_tail(&amp;dev-&gt;bus_list, &amp;dev-&gt;bus-&gt;devices.<span class="hljs-built_in">list</span>);<br>        <span class="hljs-comment">//关键点！</span><br>        <span class="hljs-comment">//让这个设备去搜寻其对应的设备驱动</span><br>		device_attach(dev);<br>		up_write(&amp;dev-&gt;bus-&gt;subsys.rwsem);<br>        <span class="hljs-comment">//增加这个设备对应的属性文件</span><br>		device_add_attrs(bus, dev);<br>        <span class="hljs-comment">//增加符号链接</span><br>		sysfs_create_link(&amp;bus-&gt;devices.kobj, &amp;dev-&gt;kobj, dev-&gt;bus_id);<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>核心函数——找一个驱动去匹配这个设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">device_attach</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device * dev)</span><br>&#123;<br> 	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">bus_type</span> * <span class="hljs-title">bus</span> =</span> dev-&gt;bus;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> * <span class="hljs-title">entry</span>;</span><br>	<span class="hljs-type">int</span> error;<br>	<br>    <span class="hljs-comment">//如果这个设备本身有驱动，就直接将这个设备和其驱动绑定</span><br>	<span class="hljs-keyword">if</span> (dev-&gt;driver) &#123;<br>		device_bind_driver(dev);<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>	&#125;<br>	<span class="hljs-comment">//走到这里，说明没有绑定的驱动，那么可以通过总线的match函数搜索驱动</span><br>	<span class="hljs-keyword">if</span> (bus-&gt;match) &#123;<br>        <span class="hljs-comment">//遍历这个总线的所有驱动</span><br>		list_for_each(entry, &amp;bus-&gt;drivers.<span class="hljs-built_in">list</span>) &#123;<br>            <span class="hljs-comment">//得到这个驱动</span><br>			<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">device_driver</span> * <span class="hljs-title">drv</span> =</span> to_drv(entry);<br>            <span class="hljs-comment">//调用这个驱动去绑定设备</span><br>			error = driver_probe_device(drv, dev);<br>            <span class="hljs-comment">//如果绑定成功，return 1</span><br>			<span class="hljs-keyword">if</span> (!error)<br>				<span class="hljs-comment">/* success, driver matched */</span><br>				<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>            <span class="hljs-comment">//否则，看是否是没有设备或者IO占用，报错</span><br>			<span class="hljs-keyword">if</span> (error != -ENODEV &amp;&amp; error != -ENXIO)<br>				<span class="hljs-comment">/* driver matched but the probe failed */</span><br>				printk(KERN_WARNING<br>				    <span class="hljs-string">&quot;%s: probe of %s failed with error %d\n&quot;</span>,<br>				    drv-&gt;name, dev-&gt;bus_id, error);<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">//return 0说明没有匹配成功</span><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>驱动去尝试probe设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">driver_probe_device</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device_driver * drv, <span class="hljs-keyword">struct</span> device * dev)</span><br>&#123;<br>    <span class="hljs-comment">//如果这个设备所属的总线有match函数，那么调用这个match</span><br>	<span class="hljs-keyword">if</span> (drv-&gt;bus-&gt;match &amp;&amp; !drv-&gt;bus-&gt;match(dev, drv))<br>		<span class="hljs-keyword">return</span> -ENODEV;<br>	<br>    <span class="hljs-comment">//给这个设备所属的驱动赋值，说明这个设备现在有对应的驱动了</span><br>	dev-&gt;driver = drv;<br>    <span class="hljs-comment">//调用驱动的probe</span><br>	<span class="hljs-keyword">if</span> (drv-&gt;probe) &#123;<br>		<span class="hljs-type">int</span> error = drv-&gt;probe(dev);<br>        <span class="hljs-comment">//如果出错，就返回错误</span><br>		<span class="hljs-keyword">if</span> (error) &#123;<br>			dev-&gt;driver = <span class="hljs-literal">NULL</span>;<br>			<span class="hljs-keyword">return</span> error;<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">//否则到了这里，说明一级找到了设备对应的驱动，那么进行绑定</span><br>	device_bind_driver(dev);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>设备绑定驱动</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">device_bind_driver</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device * dev)</span><br>&#123;<br>	pr_debug(<span class="hljs-string">&quot;bound device &#x27;%s&#x27; to driver &#x27;%s&#x27;\n&quot;</span>,<br>		 dev-&gt;bus_id, dev-&gt;driver-&gt;name);<br>    <span class="hljs-comment">//这里做真正的绑定操作，将这个设备的链表节点加入到驱动的devices链表中</span><br>	list_add_tail(&amp;dev-&gt;driver_list, &amp;dev-&gt;driver-&gt;devices);<br>	sysfs_create_link(&amp;dev-&gt;driver-&gt;kobj, &amp;dev-&gt;kobj,<br>			  kobject_name(&amp;dev-&gt;kobj));<br>	sysfs_create_link(&amp;dev-&gt;kobj, &amp;dev-&gt;driver-&gt;kobj, <span class="hljs-string">&quot;driver&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="driver-register——驱动注册"><a href="#driver-register——驱动注册" class="headerlink" title="driver_register——驱动注册"></a>driver_register——驱动注册</h3><p>向系统注册一个驱动</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">driver_register</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device_driver * drv)</span><br>&#123;<br>    <span class="hljs-comment">//初始化链表，devices是这个驱动所能支持的设备</span><br>	INIT_LIST_HEAD(&amp;drv-&gt;devices);<br>    <span class="hljs-comment">//初始化锁</span><br>	init_MUTEX_LOCKED(&amp;drv-&gt;unload_sem);<br>    <span class="hljs-comment">//bus增加一个驱动</span><br>	<span class="hljs-keyword">return</span> bus_add_driver(drv);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>向bus增加一个驱动，可以和bus增加一个设备比较一下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">bus_add_driver</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device_driver * drv)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">bus_type</span> * <span class="hljs-title">bus</span> =</span> get_bus(drv-&gt;bus);<br>	<span class="hljs-type">int</span> error = <span class="hljs-number">0</span>;<br>    <br>	<span class="hljs-comment">//如果bus存在</span><br>	<span class="hljs-keyword">if</span> (bus) &#123;<br>		pr_debug(<span class="hljs-string">&quot;bus %s: add driver %s\n&quot;</span>, bus-&gt;name, drv-&gt;name);<br>        <span class="hljs-comment">//设置这个驱动的名字到驱动的kobj中</span><br>		error = kobject_set_name(&amp;drv-&gt;kobj, <span class="hljs-string">&quot;%s&quot;</span>, drv-&gt;name);<br>		<span class="hljs-keyword">if</span> (error) &#123;<br>			put_bus(bus);<br>			<span class="hljs-keyword">return</span> error;<br>		&#125;<br>        <span class="hljs-comment">//驱动的上级节点是这个总线的driver这个kset</span><br>		drv-&gt;kobj.kset = &amp;bus-&gt;drivers;<br>        <span class="hljs-comment">//向系统注册这个驱动</span><br>		<span class="hljs-keyword">if</span> ((error = kobject_register(&amp;drv-&gt;kobj))) &#123;<br>			put_bus(bus);<br>			<span class="hljs-keyword">return</span> error;<br>		&#125;<br><br>		down_write(&amp;bus-&gt;subsys.rwsem);<br>        <span class="hljs-comment">//关键函数，驱动去找设备</span><br>		driver_attach(drv);<br>		up_write(&amp;bus-&gt;subsys.rwsem);<br>        <span class="hljs-comment">//模块相关</span><br>		module_add_driver(drv-&gt;owner, drv);<br>		<span class="hljs-comment">//驱动增加属性文件</span><br>		driver_add_attrs(bus, drv);<br>	&#125;<br>	<span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>驱动绑定设备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">driver_attach</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device_driver * drv)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">bus_type</span> * <span class="hljs-title">bus</span> =</span> drv-&gt;bus;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> * <span class="hljs-title">entry</span>;</span><br>	<span class="hljs-type">int</span> error;<br>	<br>    <span class="hljs-comment">//如果这个总线没有match函数，直接返回</span><br>	<span class="hljs-keyword">if</span> (!bus-&gt;match)<br>		<span class="hljs-keyword">return</span>;<br>	<span class="hljs-comment">//遍历总线下的所有设备</span><br>	list_for_each(entry, &amp;bus-&gt;devices.<span class="hljs-built_in">list</span>) &#123;<br>		<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">device</span> * <span class="hljs-title">dev</span> =</span> container_of(entry, <span class="hljs-keyword">struct</span> device, bus_list);<br>        <span class="hljs-comment">//如果这个设备还没有驱动（有设备的驱动就不用管了，人家有主了）</span><br>		<span class="hljs-keyword">if</span> (!dev-&gt;driver) &#123;<br>            <span class="hljs-comment">//仍旧是驱动probe设备</span><br>			error = driver_probe_device(drv, dev);<br>            <span class="hljs-comment">//如果出错，并且错误不是没有设备（有其他令人发愁的错误出现了QAQ）</span><br>			<span class="hljs-keyword">if</span> (error &amp;&amp; (error != -ENODEV))<br>				<span class="hljs-comment">/* driver matched but the probe failed */</span><br>				printk(KERN_WARNING<br>				    <span class="hljs-string">&quot;%s: probe of %s failed with error %d\n&quot;</span>,<br>				    drv-&gt;name, dev-&gt;bus_id, error);<br>		&#125;<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/kojb/" class="print-no-link">#kojb</a>
+      
+        <a href="/tags/device-driver-model/" class="print-no-link">#device driver model</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux设备驱动模型</div>
+      <div>https://yill-z.github.io/2025/01/06/Linux设备驱动模型/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Yill Zhang</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年1月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/01/06/ARM64%E6%9E%B6%E6%9E%84%E8%AE%BE%E5%A4%87%E6%A0%91%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" title="ARM64架构设备树初始化流程详解">
+                        <span class="hidden-mobile">ARM64架构设备树初始化流程详解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Yill-Z/Yill-Z.github.io');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
