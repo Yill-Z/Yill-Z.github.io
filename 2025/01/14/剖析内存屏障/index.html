@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/Yill.jpg">
+  <link rel="icon" href="/img/Yill.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yill Zhang">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="剖析内存屏障">
+<meta property="og:type" content="article">
+<meta property="og:title" content="剖析内存屏障">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/14/%E5%89%96%E6%9E%90%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C/index.html">
+<meta property="og:site_name" content="Yill&#39;s tech cabin.">
+<meta property="og:description" content="剖析内存屏障">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-14T15:49:55.000Z">
+<meta property="article:modified_time" content="2025-01-14T15:49:55.061Z">
+<meta property="article:author" content="Yill Zhang">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="计算机组成原理">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>剖析内存屏障 - Yill&#39;s tech cabin.</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yill-z.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yill&#39;s tech cabin.</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/universal.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="剖析内存屏障"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-01-14 23:49" pubdate>
+          2025年1月14日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          56 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">剖析内存屏障</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="剖析内存屏障"><a href="#剖析内存屏障" class="headerlink" title="剖析内存屏障"></a>剖析内存屏障</h1><h2 id="理解乱序"><a href="#理解乱序" class="headerlink" title="理解乱序"></a>理解乱序</h2><p>乱序可以分为两个大类，即：软件和硬件</p>
+<ul>
+<li><p>软件</p>
+<ul>
+<li>编译器优化</li>
+<li>编译时</li>
+<li>目的通常是为了更有效率的使用寄存器</li>
+<li>多线程时可见</li>
+</ul>
+</li>
+<li><p>硬件</p>
+<ul>
+<li>CPU乱序执行</li>
+<li>运行时</li>
+<li>目的通常是为了并行执行互相无干扰的指令，以节省时间</li>
+<li>通常在多核系统中可见</li>
+</ul>
+</li>
+</ul>
+<p>这两种情况都会导致程序的执行顺序与程序员书写的顺序不一致，特别是多线程环境中，逻辑的正确性可能依赖于内存访问顺序</p>
+<p>这是一个出错的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// thread 1</span><br><span class="hljs-keyword">while</span>( !ok );<br><span class="hljs-keyword">do</span>(x);<br><br><span class="hljs-comment">// thread 2</span><br>x = <span class="hljs-number">42</span>;<br>ok = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>ok</code>作为全局变量，被初始化为<code>0</code>，现在两线程并发，有可能<code>ok</code>的赋值被乱序到<code>x = 42</code>之前（之所以会出现这种原因，是由于编译器发现<code>x</code>和<code>ok</code>的赋值没有依赖关系，它并不知道另一个线程对其有依赖），那么，线程1就判断条件通过，执行<code>do(x)</code>，他的实参<code>x</code>就不是<code>42</code>了，这种错误非常难以发现</p>
+<h2 id="经典示例"><a href="#经典示例" class="headerlink" title="经典示例"></a>经典示例</h2><p>% note info %</p>
+<p>注意如下场景：</p>
+<p>多线程环境 or 多进程共享内存时</p>
+<p>一个线程&#x2F;进程操作一个共享内容后，设置一个标志位，用以通知其余线程&#x2F;进程</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">shared_variable = new_value;<br>flag = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>在编译器和处理器中，由于<code>flag</code>和<code>shared_variable</code>两个变量没有依赖关系，因此有可能发生重排，也就是<code>flag = 1</code>在<code>shared_variable = new_value</code>之前发生，这就会导致，其他进程&#x2F;线程以为<code>shared_variable</code>已经是新值了，但其实这个赋值还没有发生，此时导致故障<br>% endnote %</p>
+<h2 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h2><p>% note info %</p>
+<p>通常，内存屏障应用于并发无锁编程<br>% endnote %</p>
+<p>理解了乱序之后，就需要想办法解决由此产生的问题</p>
+<p>既然乱序有两种原因导致，那么内存屏障也应该有两种</p>
+<ul>
+<li>编译器屏障</li>
+<li>CPU屏障</li>
+</ul>
+<h3 id="编译器屏障"><a href="#编译器屏障" class="headerlink" title="编译器屏障"></a>编译器屏障</h3><p>编译器屏障是用来指挥编译器的，不会产生任何运行时的指令</p>
+<p>它仅仅是用来告诉编译器，不要重排屏障前后的指令</p>
+<p>经典的编译器屏障就是<code>barrier</code></p>
+<p>其实现可能就是单纯的这样</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> barrier() __asm__ __volatile__(<span class="hljs-string">&quot;&quot;</span>:::<span class="hljs-string">&quot;memory&quot;</span>);</span><br></code></pre></td></tr></table></figure>
+
+<p>这句代码在编译完成后，不会产生任何运行时指令，但是可以有效隔绝屏障前后的指令乱序</p>
+<p>% note info %</p>
+<p>by the way, <code>volatile</code>关键字可以起到同样的作用</p>
+<p>但仍有细微的差异：<code>volatile</code>会绑定该变量，这导致这个变量永远不能被寄存器缓存，每次访问该变量都会强制从内存中取值。而<code>barrier</code>只会影响该语句所在的上下文<br>% endnote %</p>
+<p>那么，<code>barrier</code>本身是完美的么？</p>
+<p>也不尽然</p>
+<p><code>barrier</code>会使当前上下文的所有寄存器缓存失效，这意味着所有的寄存器都需要从内存中更新内容，但是这可能是不必要的，有时我们可能只关心某一个寄存器中的内容</p>
+<p>这就引出了<code>ACCESS_ONCE</code>!!!!!</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> ACCESS_ONCE(x) (*(volatile typeof(x) *)&amp;(x))</span><br></code></pre></td></tr></table></figure>
+
+<p>虽然这里仍使用了<code>volatile</code>，但却是在一个临时变量中，这意味着仅在调用<code>ACCESS_ONCE</code>的时候抑制编译器优化，其他时候访问变量仍会启用编译器优化</p>
+<p>在GCC4.6和4.7版本中有一个bug，如果<code>ACCESS_ONCE</code>的参数是非标量（就是结构体，联合体，数组等），<code>volatile</code>标记会被编译器移除，例如通过<code>ACCESS_ONCE</code>访问<code>pte_t</code>类型变量会导致错误</p>
+<p>% note info %</p>
+<p>标量类型：只包含单一数值的简单数据类型，包括整形，浮点，指针</p>
+<p>向量类型：包含多个数值，数组，结构体，联合体<br>% endnote %</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> pte;<br>&#125; <span class="hljs-type">pte_t</span>;<br><span class="hljs-type">pte_t</span> p = ACCESS_ONCE(pte);  <span class="hljs-comment">// 报错！！！</span><br></code></pre></td></tr></table></figure>
+
+<p>由此，Linux引入了<code>READ_ONCE</code>和<code>WRITE_ONCE</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> __READ_ONCE(x, check) \</span><br><span class="hljs-meta">(&#123;                                    \</span><br><span class="hljs-meta">    union &#123; typeof(x) __val; char __c[1]; &#125; __u; \</span><br><span class="hljs-meta">    <span class="hljs-keyword">if</span> (check)                        \</span><br><span class="hljs-meta">        __read_once_size(&amp;(x), __u.__c, sizeof(x)); \</span><br><span class="hljs-meta">    <span class="hljs-keyword">else</span>                                \</span><br><span class="hljs-meta">        __read_once_size_nocheck(&amp;(x), __u.__c, sizeof(x)); \</span><br><span class="hljs-meta">    smp_read_barrier_depends(); <span class="hljs-comment">/* Enforce dependency ordering from x */</span> \</span><br><span class="hljs-meta">    __u.__val;                        \</span><br><span class="hljs-meta">&#125;)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> READ_ONCE(x) __READ_ONCE(x, 1)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> __READ_ONCE_SIZE    \</span><br><span class="hljs-meta">(&#123;                                    \</span><br><span class="hljs-meta">    switch (size) &#123;            \</span><br><span class="hljs-meta">    case 1: *(__u8 *)res = *(volatile __u8 *)p; break;   \</span><br><span class="hljs-meta">    case 2: *(__u16 *)res = *(volatile __u16 *)p; break; \</span><br><span class="hljs-meta">    case 4: *(__u32 *)res = *(volatile __u32 *)p; break; \</span><br><span class="hljs-meta">    case 8: *(__u64 *)res = *(volatile __u64 *)p; break; \</span><br><span class="hljs-meta">    default:                        \</span><br><span class="hljs-meta">        barrier();                    \</span><br><span class="hljs-meta">        __builtin_memcpy((void *)res, (const void *)p, size); \</span><br><span class="hljs-meta">        barrier();                    \</span><br><span class="hljs-meta">    &#125;                                \</span><br><span class="hljs-meta">&#125;)</span><br><span class="hljs-type">static</span> __always_inline<br><span class="hljs-type">void</span> __read_once_size(<span class="hljs-type">const</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">void</span> *p, <span class="hljs-type">void</span> *res, <span class="hljs-type">int</span> size)<br>&#123;<br>    __READ_ONCE_SIZE;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>核心思路是：将向量类型转化为标量类型，然后再使用<code>ACCESS_ONCE</code>的方式，<code>WRITE_ONCE</code>同理</p>
+<h3 id="CPU屏障"><a href="#CPU屏障" class="headerlink" title="CPU屏障"></a>CPU屏障</h3><h4 id="内存操作序"><a href="#内存操作序" class="headerlink" title="内存操作序"></a>内存操作序</h4><p>这是通常理解的内存屏障，在<code>CPU</code>运行时起作用，既然是内存乱序，针对内存的操作一共只有读和写两种操作。</p>
+<p>将读操作记为<code>Load</code>，将写操作记为<code>Store</code>，那么内存重排的次序排列组合共有四种：</p>
+<ul>
+<li><code>StoreStore</code>：两次写入</li>
+<li><code>StoreLoad</code>：先写入再加载（这个代价最大，一般实现为全屏障）</li>
+<li><code>LoadLoad</code>：两次加载</li>
+<li><code>LoadStore</code>：先加载再写入</li>
+</ul>
+<p>% note info %</p>
+<p>其中，<code>STORESTORE</code>和<code>STORELOAD</code>两种重排涉及<code>store buffer</code></p>
+<p><code>LOADLOAD</code>涉及<code>invalidation queue</code><br>% endnote %</p>
+<h4 id="存储缓冲区"><a href="#存储缓冲区" class="headerlink" title="存储缓冲区"></a>存储缓冲区</h4><p><code>CPU0</code>执行<code>STORE</code>操作时，需要通知其他<code>CPU</code>缓存失效，这是由<code>MESI</code>机制决定的</p>
+<p>但是这会造成<code>CPU0</code>在发出<code>Invalidate</code>到收到其他<code>CPU</code>的<code>Acknowledgement</code>这段时间进行忙等，由于<code>STORE</code>操作本质上是异步的，这段忙等完全可以让<code>CPU0</code>用来做其他事情</p>
+<p>因此硬件工程师们设计了一个存储缓冲区<code>store buffer</code>，<code>CPU</code>可以直接写入<code>store buffer</code>然后去做其他事情</p>
+<p>这个<code>store buffer</code>的位置在<code>CPU</code>和<code>L1 cache</code>之间，只有<code>STORE</code>操作会往里面写入数据，<code>CPU</code>发送<code>Invalidate</code>指令，将新数据写入<code>store buffer</code>，然后<code>CPU</code>继续执行其他操作，<code>store buffer</code>则等待收到其他<code>CPU</code>的<code>Acknowledgement</code>后，将其中的内容放入缓存行</p>
+<p>% note info %</p>
+<p>注意，<code>MESI</code>指令是针对缓存的，<code>store buffer</code>不是缓存，因此不受<code>MESI</code>影响，这会导致，在收到其他<code>CPU</code>的<code>Acknowledgement</code>回复之前，这个数据只在当前<code>CPU</code>的<code>store buffer</code>中存在<br>% endnote %</p>
+<p>e.g: 查看如下代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// a, b均为全局变量，a仅在cpu1的缓存行，b仅在cpu0的缓存行，其值均为0</span><br>a = <span class="hljs-number">1</span>;<br>b = a + <span class="hljs-number">1</span>;<br>assert(b == <span class="hljs-number">2</span>);<br></code></pre></td></tr></table></figure>
+
+<p>假设<code>CPU0</code>执行上述代码：</p>
+<ol>
+<li><code>CPU0</code>执行<code>a = 1</code>，但是<code>a</code>不在<code>CPU0</code>的缓存行中，发生缓存未命中，<code>CPU0</code>发出<code>MESI</code>的<code>read invalidate</code>消息，<code>CPU0</code>将<code>a</code>的值<code>1</code>写入到<code>CPU0</code>的<code>store buffer</code>中</li>
+<li><code>CPU1</code>收到<code>read invalidate</code>消息，回复<code>CPU0</code>读响应消息<code>read response</code>和应答消息<code>Acknowledgement</code>，读响应消息将<code>CPU1</code>的缓存中的<code>a</code>置为0</li>
+<li><code>CPU0</code>执行<code>b = a + 1</code>，<code>CPU0</code>收到了<code>CPU1</code>的读响应<code>read response</code>消息，其中变量<code>a</code>的值被描述为<code>0</code>，因此，<code>CPU0</code>的缓存行中，变量<code>a</code>的值被更新为<code>0</code></li>
+<li><code>CPU0</code>执行<code>b = a + 1</code>，然后<code>a</code>的值为<code>0</code>，因此<code>b</code>的值为<code>1</code></li>
+<li>断言失败</li>
+</ol>
+<p>导致上述问题的关键在于，<code>CPU0</code>的存储缓冲区和缓存行中缓存了相同的变量，他们是无需同步的</p>
+<p>由此需要改进存取缓冲区的机制，即：</p>
+<p><code>CPU</code>执行完存储<code>STORE</code>操作后，将值写入到<code>store buffer</code>，然后继续执行其他指令，当<code>CPU</code>在存储之后执行加载<code>LOAD</code>操作时，会先去<code>store buffer</code>里面查找，再去缓存行查找。如果<code>store buffer</code>里面有对应的数据，则加载操作直接使用<code>store buffer</code>中的数据，而不是缓存行中的数据。</p>
+<h4 id="StoreStore乱序"><a href="#StoreStore乱序" class="headerlink" title="StoreStore乱序"></a>StoreStore乱序</h4><p>如上所述，<code>store buffer</code>可以加快<code>CPU</code>执行速度，然而，在<code>SMP</code>系统中，如果多个线程&#x2F;进程在多个<code>CPU</code>上并行时，<code>store buffer</code>会导致<code>STORESTORE</code>乱序</p>
+<p>e.g:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">foo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    a = <span class="hljs-number">1</span>;<br>    b = <span class="hljs-number">1</span>;<br>&#125; <span class="hljs-comment">// CPU0</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">bar</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span>(b == <span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>    assert(a == <span class="hljs-number">1</span>);<br>&#125; <span class="hljs-comment">// CPU1</span><br></code></pre></td></tr></table></figure>
+
+<p>全局变量<code>a</code>，<code>b</code>的初始值为0，最初，变量<code>a</code>仅在<code>CPU1</code>的缓存行中，变量<code>b</code>仅在<code>CPU0</code>的缓存行中，假定<code>CPU0</code>执行<code>foo</code>，<code>CPU1</code>执行<code>bar</code>，运行过程为：</p>
+<ol>
+<li><code>CPU0</code>执行<code>a = 1</code>，因为变量<code>a</code>不在<code>CPU0</code>的缓存行里面，因此<code>CPU0</code>将<code>a</code>的新值放在其存储缓冲区<code>store buffer</code>，并发出读无效<code>read invalidate</code>信息</li>
+<li><code>CPU1</code>执行<code>while(b == 0) continue</code>这一句，但是<code>CPU1</code>没有变量<code>b</code>的缓存，因此发出读<code>read</code>信息</li>
+<li><code>CPU0</code>执行<code>b = 1</code>，它已经拥有该缓存行（或者说，该缓存行已经处于<code>modified</code>或<code>exclusive</code>状态），因此<code>CPU0</code>将<code>b</code>的新值写入其缓存行中</li>
+<li><code>CPU0</code>收到读取<code>read</code>消息，并将包含更新过后的<code>b</code>值的缓存行传输到<code>CPU1</code>，同时在其缓存行中将其标记为<code>shared</code></li>
+<li><code>CPU1</code>接收到包含<code>b</code>的高速缓存行，并将其放在<code>CPU1</code>的高速缓存行中</li>
+<li><code>CPU1</code>现在可以通过语句<code>while(b == 0) continue;</code>，因为<code>b</code>现在是<code>1</code>了</li>
+<li><code>CPU1</code>现在执行断言<code>assert(1 == a)</code>，发现<code>a</code>的值为<code>0</code>，断言失败</li>
+<li><code>CPU1</code>收到读无效<code>read invalidate</code>消息，并将包含<code>a</code>的缓存行传输到<code>CPU0</code>，并从其缓存中使该缓存行无效，但为时已晚，断言已经执行过了</li>
+<li><code>CPU0</code>接收包含<code>a</code>的缓存行，并用<code>store buffer</code>中<code>a</code>的新值修改，对于<code>CPU0</code>而言，缓存行中的<code>a</code>已经成为新的，<code>Modified</code>状态的值，<code>CPU0</code>无异常，但是成为<code>CPU1</code>断言失败的受害者</li>
+</ol>
+<p>这导致了一个现象，从<code>CPU1</code>的角度看，<code>CPU0</code>中出现了内存重排序，然而在<code>CPU0</code>的视角中，它是正常执行的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// CPU0 view</span><br>a = <span class="hljs-number">1</span>;<br>b = <span class="hljs-number">1</span>;<br><br><span class="hljs-comment">// CPU1 view</span><br>b = <span class="hljs-number">1</span>;<br>a = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>两条<code>STORE</code>指令被重排，因此称为<code>STORESTORE</code></p>
+<p>针对这个问题，就需要使用内存屏障</p>
+<p>问题的关键在于：两条写指令，前一条不在当前核的缓存中，后一条在，那么<code>a = 1</code>时，<code>a</code>被放在<code>store buffer</code>中，<code>b = 1</code>由于在缓存中，可以直接执行，而不会收到来自其他<code>CPU</code>的<code>invalidate acknowledge</code>信息</p>
+<p>% note info %</p>
+<p>引入<code>store buffer</code>后，多个<code>CPU</code>上并行运行的线程或进程的执行逻辑之间就有了联系，但是，编译器和硬件很难感受到这种逻辑联系，<strong>只有软件程序员知道</strong>，这就是内存屏障的用武之地！<br>% endnote %</p>
+<p>内存屏障的指令由硬件实现，不同架构的<code>CPU</code>有不同的内存屏障指令，内存屏障指令需要程序员在代码中显式调用，如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">foo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    a = <span class="hljs-number">1</span>;<br>    smp_mb();<br>    b = <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">bar</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span> (b == <span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>    assert(a == <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的内存屏障<code>smp_mb()</code>用于实现<code>STORESTORE</code>同步，当<code>smp_mb()</code>被调用时，<code>CPU</code>首先对<code>store buffer</code>执行刷新操作。在刷新操作期间，需要接收到所有其他<code>CPU</code>的无效确认<code>invalidate acknowledge</code>消息后，<code>store buffer</code>中缓存的修改后的数据将被更新到缓存行，此时，当<code>store buffer</code>中的所有数据都更新到缓存行时，<code>store buffer</code>造成的影响消失，<code>CPU</code>可以在<code>smp_mb()</code>内存屏障之后继续执行存储操作，<code>smp_mb()</code>内存屏障之后的加载操作可以在不完成<code>store buffer</code>刷新操作的情况下进行。</p>
+<p>当调用<code>smp_mb()</code>来刷新<code>store buffer</code>时，<code>CPU</code>可以等到<code>store buffer</code>中的数据被清除后再继续内存屏障之后的存储操作</p>
+<p>% note info %</p>
+<p>这里是指，当刷新<code>store buffer</code>时，可以继续执行<code>STORESTORE</code>后面的存储操作，但是不能直接写入到缓存行里面，只能放在<code>store buffer</code>里面<br>% endnote %</p>
+<p>在上述代码中，如果没有使用<code>smp_mb()</code>内存屏障，当<code>CPU0</code>执行<code>b = 1</code>时，<code>CPU0</code>可以直接将变量<code>b</code>的新值写入缓存行中，因为变量<code>b</code>在<code>CPU0</code>中是<code>MESI</code>的<code>E</code>或<code>M</code>状态，即缓存命中</p>
+<p>现在加了<code>smp_mb()</code>内存屏障，当<code>CPU0</code>执行<code>b = 1</code>时，即使发生缓存命中，变量<code>b</code>的新值也无法写入缓存行，因为此时正在执行<code>store buffer</code>的刷新操作，相反，变量<code>b</code>的新值必须写入<code>store buffer</code>中，然后，变量<code>b</code>的新值可以在<code>store buffer</code>刷新的过程中更新的缓存行中</p>
+<p>在使用了<code>smp_mb()</code>内存屏障后，上述代码的执行流程变为：</p>
+<ol>
+<li><code>CPU0</code>执行<code>a = 1</code>，该变量<code>a</code>发生缓存未命中，因此<code>CPU0</code>将新值<code>a</code> 放入其<code>store buffer</code>中，并传输<code>read invalidate</code>消息</li>
+<li><code>CPU1</code>执行<code>while (b == 0) continue;</code>，但是变量<code>b</code>发生缓存未命中，<code>CPU1</code>发出<code>read</code>消息</li>
+<li><code>CPU0</code>执行<code>smp_mb()</code>，并将当前缓冲区条目<code>a = 1</code>进行标记</li>
+<li><code>CPU0</code>执行<code>b = 1</code>，发生缓存命中，但是<code>store buffer</code>中有一个标记条目，因此，<code>CPU0</code>将变量<code>b</code> 的新值放在<code>store buffer</code>中（但是放在未标记的条目中）</li>
+<li><code>CPU0</code>接收到<code>read</code>消息，并将包含<code>b</code>的原始值的缓存行传输到<code>CPU1</code>，并且将该行缓存行标记为<code>shared</code></li>
+<li><code>CPU1</code>接收包含<code>b</code>的高速缓存行，并将其安装到其高速缓存中</li>
+<li><code>CPU1</code>执行<code>while (b == 0) continue;</code>，并且变量<code>b</code>在其缓存行中，但是这仍然是旧值，即<code>b = 0</code>，其新值仍在<code>CPU0</code>的<code>store buffer</code>中，于是重复<code>while</code>语句</li>
+<li><code>CPU1</code>接收到读无效<code>read invalidate</code>消息，并将包含<code>a</code>的缓存行传输到<code>CPU0</code>，并使该行标记为无效<code>Invalidate</code></li>
+<li><code>CPU0</code>接收包含<code>a</code>的缓存行并且用<code>store buffer</code>中<code>a</code>的新值修改，将该行置于<code>Modified</code>状态</li>
+<li>在<code>CPU0</code>中，由于<code>a = 1</code>是<code>store buffer</code>中的唯一被标记的条目，<code>CPU0</code>的<code>store buffer</code>还可以存储<code>b</code>的新值，此时，<code>CPU0</code>的有变量<code>b</code>的缓存行仍然还是被标记为<code>shared</code>状态的</li>
+<li>因此，<code>CPU0</code>向<code>CPU1</code>发送<code>invalidate</code>消息</li>
+<li><code>CPU1</code>收到<code>invalidate</code>消息，并将<code>b</code>对应的缓存行置为<code>Invalidate</code>，同时向<code>CPU0</code>发送应答<code>Acknowledge</code>消息</li>
+<li><code>CPU1</code>执行<code>while (b == 0) continue;</code>，但是缓存行中的<code>b</code>是<code>invalidate</code>状态，因此<code>CPU1</code>发送读取<code>b</code>的消息<code>read</code></li>
+<li><code>CPU0</code>收到确认<code>Acknowledge</code>消息，并将包含<code>b</code> 的缓存行置为独占<code>Exclusive</code>状态，<code>CPU0</code>将<code>b</code>的新值存储到缓存行中</li>
+<li><code>CPU0</code>接收到读取消息，并将包含新值<code>b</code>的缓存行传输到<code>CPU1</code>，并将自己的该行缓存行标记为<code>shared</code></li>
+<li><code>CPU1</code>接收到包含<code>b</code>的缓存行并将其安装到自己的缓存行中</li>
+<li><code>CPU1</code>现在可以完成<code>while</code>循环的执行，然后执行<code>assert</code>语句，由于<code>a</code>不在其缓存行中，它会发起读<code>read</code>消息，获取到<code>CPU0</code>中的<code>a</code>变量，两个<code>CPU</code>都将该变量置为<code>shared</code>，并且该变量值为<code>1</code>，通过断言</li>
+</ol>
+<h4 id="StoreLoad乱序"><a href="#StoreLoad乱序" class="headerlink" title="StoreLoad乱序"></a>StoreLoad乱序</h4><p>查看一个示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// CPU0</span><br>WRITE(A, <span class="hljs-number">1</span>)<br>READ(B)<br><br><span class="hljs-comment">// CPU1</span><br>WRITE(B, <span class="hljs-number">1</span>)<br>READ(A)<br></code></pre></td></tr></table></figure>
+
+<p>内存<code>A</code>和<code>B</code>的初始值都是<code>0</code>，<code>CPU0</code>执行<code>A=1</code>，<code>CPU1</code>执行<code>B=1</code>，<strong>但是两个<code>CPU</code>读取的结果都有可能是<code>0</code></strong></p>
+<p>假设变量<code>A</code>最初只在<code>CPU1</code>的缓存行中，变量<code>B</code>只在<code>CPU0</code>的缓存行中，有以下过程：</p>
+<ol>
+<li>当<code>CPU0</code>执行<code>A = 1</code>时，发生缓存未命中，因此，<code>A</code>的新值被保留在<code>store buffer</code>中，并向<code>CPU1</code>发送一条无效<code>invalidate</code>消息</li>
+<li>然后，<code>CPU0</code>继续执行<code>READ(B)</code>，发生缓存命中，<code>B</code>值为<code>0</code></li>
+<li>当<code>CPU1</code>执行<code>B = 1</code>时，发生缓存未命中，因此，<code>B</code>的新值被放置在<code>store buffer</code>中，<code>CPU1</code>发出<code>invalidate</code>消息</li>
+<li>然后，<code>CPU1</code>继续执行<code>READ(A)</code>，缓存命中，<code>A</code>值为<code>0</code></li>
+<li>然后，<code>CPU1</code>从<code>CPU0</code>接收到关于变量<code>A</code>的<code>invalidate</code>消息，并将缓存行中的变量<code>A</code>的值更新为<code>1</code></li>
+<li>然后，<code>CPU0</code>从<code>CPU1</code>接收到关于变量<code>B</code>的<code>invalidate</code>消息，并将缓存行中的变量<code>B</code>的值更新为<code>1</code></li>
+</ol>
+<p>这种重排称为<code>StoreLoad</code>重排，解决方案是在<code>Store</code>和<code>Load</code>操作中间加入<code>StoreLoad</code>内存屏障，当遇到内存屏障时，<code>store buffer</code>会被刷新到缓存行中，此时，<code>CPU</code>必须等待<code>store buffer</code>中的数据刷新完成，然后才能访问内存屏障之后的访存操作</p>
+<h4 id="invalidation-queue"><a href="#invalidation-queue" class="headerlink" title="invalidation queue"></a>invalidation queue</h4><p><code>store buffer</code>的容量一般比较小，在这两种情况下，其很快就会被填满：</p>
+<ol>
+<li>当<code>CPU</code>执行<code>STORE</code>操作时发生缓存未命中时，当前<code>STORE</code>操作修改的数据必须放在<code>store buffer</code>里面，然后才能继续执行后续指令。当<code>CPU</code>连续执行多个<code>STORE</code>操作期间发生缓存未命中时，<code>store buffer</code>会很快填满，此时，<code>CPU</code>必须等待其他<code>CPU</code>的无效确认消息，之后<code>CPU</code>就可以将<code>store buffer</code>里面的内容更新到缓存行中，<strong>这是<code>store buffer</code>中有可用空间的唯一办法</strong></li>
+<li>当<code>CPU</code>调用内存屏障操作时，内存屏障之后的<code>STORE</code>操作必须在<code>store buffer</code>中，这种情况下，无论相应的缓存行是否准备好，<code>store buffer</code>都有可能很快被填满，<code>CPU</code>必须等待其他<code>CPU</code>的无效确认消息</li>
+</ol>
+<p>当<code>store buffer</code>被填满时，<code>CPU</code>必须等待其他<code>CPU</code>的无效确认消息，使用<code>invalidation queue</code>可以减少等待时间</p>
+<p>有时，<code>CPU</code>会延迟发送无效确认消息，因为<code>CPU</code>在发送无效确认<code>invalidate acknowledge</code>消息之前必须对相应缓存行执行无效<code>invalidate</code>操作，但是，当<code>CPU</code>的<code>LOAD/STORE</code>操作比较重时，<code>CPU</code>通常会将接收到的无效消息搁置，当负载变轻时，再处理无效消息并回复无效确认消息</p>
+<p>使用了无效队列<code>invalidation queue</code>后，<code>CPU</code>可以将收到的无效消息缓存到<code>invalidation queue</code>中，并立即发送无效确认消息，之后，<code>CPU</code>在发送<code>invalidate</code>消息时，必须检查<code>invalidation queue</code>中是否存在对应的<code>invalidate</code>消息</p>
+<h4 id="LoadLoad乱序"><a href="#LoadLoad乱序" class="headerlink" title="LoadLoad乱序"></a>LoadLoad乱序</h4><p><code>invalidation queue</code>队列机制会导致<code>LoadLoad</code>乱序</p>
+<p>示例代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">foo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    a = <span class="hljs-number">1</span>;<br>    smp_mb();<br>    b = <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">bar</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span> (b == <span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>    assert(a == <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>全局变量<code>a</code>和<code>b</code>都初始为<code>0</code>，<code>a</code>同时缓存在<code>CPU0</code>和<code>CPU1</code>里面（即变量<code>a</code>状态为<code>shared</code>），变量<code>b</code>仅存放在<code>CPU0</code>的缓存行中</p>
+<p>假设<code>CPU0</code>运行<code>foo</code>函数，<code>CPU1</code>运行<code>bar</code>函数，运行过程是：</p>
+<ol>
+<li><code>CPU0</code>执行<code>a = 1</code>，相应的高速缓存行在<code>CPU0</code>中是<code>shared</code>的，因此<code>CPU0</code>将新值<code>a</code>放入<code>store buffer</code>中，并发送<code>invalidate</code>消息到其他<code>CPU</code>，使<code>CPU1</code>中的变量<code>a</code>的状态变为<code>Invalidation</code>（<code>CPU0</code>中的<code>a</code>为<code>Modified</code>了）</li>
+<li><code>CPU1</code>执行<code>while</code>语句，但是变量<code>b</code>发生缓存未命中，因此其发送<code>read</code>消息</li>
+<li><code>CPU1</code>收到了<code>CPU0</code>的<code>invalidate</code>消息，将其放入<code>invalidation queue</code>，并立即发送<code>invalidate acknowledge</code>消息给<code>CPU0</code></li>
+<li><code>CPU0</code>收到了<code>CPU1</code>的<code>invalidate acknowledge</code>消息，就可以将<code>a</code>从<code>store buffer</code>中放入缓存行</li>
+<li><code>CPU0</code>执行<code>b = 1</code>，发生缓存命中，因此可以直接将<code>b</code>的新值放在其缓存行中</li>
+<li><code>CPU0</code>接到读取消息，并将包含现在的新<code>b</code>值发送给<code>CPU1</code>，同时在缓存行中标记其为<code>shared</code></li>
+<li><code>CPU1</code>接收到包含<code>b</code>的数据，并将其放在缓存行中</li>
+<li><code>CPU1</code>现在可以完成<code>while</code>语句了，因为<code>b</code>现在是<code>1</code>，于是继续执行下一个指令</li>
+<li><code>CPU1</code>执行断言失败，由于<code>a</code>的旧值<code>0</code>仍在<code>CPU1</code>的高速缓存行中</li>
+<li>尽管断言失败，<code>CPU1</code>仍会处理排队中的<code>invalidate</code>消息，并（迟缓的，于事无补的）使高速缓存行中的<code>a</code>状态变为<code>Invalidation</code>（但是没啥卵用，错误已经发生了）</li>
+</ol>
+<p>使用内存屏障可以解决这个问题</p>
+<p><code> CPU1</code>在执行<code>LOAD</code>操作来访问变量<code>a</code>的值之前，需要检查<code>invalidation queue</code>中是否存在要处理变量<code>a</code>的无效消息（<code>a</code>在屏障之后），即：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">foo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    a = <span class="hljs-number">1</span>;<br>    smp_mb();<br>    b = <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">bar</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span> (b == <span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>    smp_mb();<br>    assert(a == <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因此，当<code>CPU</code>的两次<code>LOAD</code>操作之间调用<code>LoadLoad</code>屏障时，<code>LoadLoad</code>屏障会标记<code>invalidations queue</code>中待处理的<code>invalidate</code>消息对应的缓存行，当<code>LoadLoad</code>屏障之后的加载操作对应的缓存行被标记后，就会等待对应的<code>pending invalidate</code>消息处理完毕后，才会执行<code>LOAD</code>操作</p>
+<p><code>LoadLoad</code>屏障将等待<code>invalidation queue</code>的所有待处理的<code>invalidate</code>消息被处理完成后，再执行屏障后的加载操作，代码流程为：</p>
+<ol>
+<li><code>CPU0</code>执行<code>a = 1</code>，缓存命中，但是由于<code>a</code>是<code>shared</code>状态，因此需要写入<code>store buffer</code>，发出<code>invalidate</code>消息到<code>CPU1</code></li>
+<li><code>CPU1</code>执行<code>while</code>语句，但是<code>b</code>发生缓存未命中，发出<code>read</code>消息</li>
+<li><code>CPU1</code>收到<code>CPU0</code>的<code>invalidate</code>消息，将其入队<code>invalidate queue</code>，并立即发送<code>invalidate acknowledge</code>消息</li>
+<li><code>CPU0</code>收到来自<code>CPU1</code>的响应，于是可以通过内存屏障，将<code>a</code>的值写入缓存，执行<code>b = 1</code>语句，发生缓存命中，将<code>b</code>的新值放入缓存行中</li>
+<li><code>CPU0</code>收到<code>read</code>消息，并将包含<code>b</code>新值的缓存行发送到<code>CPU1</code>，并将该缓存行标记为<code>shared</code></li>
+<li><code>CPU1</code>收到<code>b</code>的新值，将其放入缓存行中</li>
+<li><code>CPU1</code>现在可以通过<code>while</code>语句，并遇到了内存屏障</li>
+<li><code>CPU1</code>必须停止运行，直到处理完其<code>invalidate queue</code>中的<code>invalidate</code>消息</li>
+<li><code>CPU1</code>使<code>a</code>的缓存行无效（即处理了来自<code>CPU0</code>的，变量<code>a</code>的<code>invalidate</code>消息）</li>
+<li><code>CPU1</code>执行<code>assert</code>语句，<code>a</code>发生缓存未命中，并向<code>CPU0</code>发起<code>read</code>消息</li>
+<li><code>CPU0</code>使用包含新值<code>a</code>的缓存行进行回复此<code>read</code>消息</li>
+<li><code>CPU1</code>收到此缓存行，其中<code>a</code>的值为<code>1</code>，通过断言</li>
+</ol>
+<h4 id="LoadStore乱序"><a href="#LoadStore乱序" class="headerlink" title="LoadStore乱序"></a>LoadStore乱序</h4><p>这是一个单纯的内存重排，<code>LOAD</code>操作如果发生缓存未命中，则需要从主存&#x2F;其他<code>CPU</code>中获取，这是一个比较漫长的过程，<code>CPU</code>可能在这个等待的过程中继续执行下一条<code>STORE</code>指令</p>
+<h4 id="CPU内存屏障"><a href="#CPU内存屏障" class="headerlink" title="CPU内存屏障"></a>CPU内存屏障</h4><p>如上所述，CPU乱序的解决方案是使用内存屏障</p>
+<p>内存屏障共有三类：</p>
+<ul>
+<li>全屏障：限制语义最强，但是性能最差，应对所有乱序情况</li>
+<li>读屏障：保证读屏障之前的读操作一定在读屏障之后的读操作前完成，应对<code>LoadLoad</code>乱序</li>
+<li>写屏障：保证写屏障之前的写操作一定在写屏障之后的写操作前完成，应对<code>StoreStore</code>乱序</li>
+</ul>
+<h4 id="内存屏障在不同平台上的实现"><a href="#内存屏障在不同平台上的实现" class="headerlink" title="内存屏障在不同平台上的实现"></a>内存屏障在不同平台上的实现</h4><p>x86架构中的内存屏障</p>
+<p>在x86架构中，内存屏障由以下指令实现：</p>
+<ul>
+<li><strong>MFENCE</strong>：全屏障，确保读写操作的顺序。</li>
+<li><strong>LFENCE</strong>：读屏障，确保读操作的顺序。</li>
+<li><strong>SFENCE</strong>：写屏障，确保写操作的顺序。</li>
+</ul>
+<p>x86架构中的内存模型通常较为严格，因此在大多数情况下，编写多线程代码时不需要显式使用这些屏障指令。但是在涉及高性能、精确控制的场合，内存屏障仍然是必不可少的。</p>
+<p>ARM架构中的内存屏障</p>
+<p>ARM架构的内存模型相对宽松，因此在多核系统中更加依赖于内存屏障：</p>
+<ul>
+<li><strong>DMB（Data Memory Barrier）</strong>：确保内存访问的顺序。</li>
+<li><strong>DSB（Data Synchronization Barrier）</strong>：确保所有内存访问完成，并且后续指令在屏障前的指令完成后再执行。</li>
+<li><strong>ISB（Instruction Synchronization Barrier）</strong>：确保处理器重新获取指令，并在后续指令执行前更新状态。</li>
+</ul>
+<p>在ARM系统中，由于处理器和内存之间的操作可能会重排，因此内存屏障在保证操作顺序和数据一致性方面尤为重要。</p>
+<h2 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h2><h3 id="SC模型（sequential-consistency-顺序一致性）"><a href="#SC模型（sequential-consistency-顺序一致性）" class="headerlink" title="SC模型（sequential consistency, 顺序一致性）"></a>SC模型（sequential consistency, 顺序一致性）</h3><p><code>CPU</code>会按照程序中的顺序依次执行<code>STORE</code>和<code>LOAD</code></p>
+<p>% note info %</p>
+<p>最严格的内存模型<br>% endnote %</p>
+<h3 id="TSO模型（Total-Store-Order-完全存储顺序）"><a href="#TSO模型（Total-Store-Order-完全存储顺序）" class="headerlink" title="TSO模型（Total Store Order, 完全存储顺序）"></a>TSO模型（Total Store Order, 完全存储顺序）</h3><p>x86使用这种模型</p>
+<p>TSO模型允许store-load乱序</p>
+<p>store buffer会按照FIFO的顺序将数据写入到<code>L1 cache</code></p>
+<h3 id="PSO模型（Part-Store-Order-部分存储顺序）"><a href="#PSO模型（Part-Store-Order-部分存储顺序）" class="headerlink" title="PSO模型（Part Store Order, 部分存储顺序）"></a>PSO模型（Part Store Order, 部分存储顺序）</h3><p>PSO模型，store buffer不再按照FIFO顺序写入<code>L1 cache</code></p>
+<p>PSO模型允许store-load, store-store乱序</p>
+<h3 id="RMO模型（Relaxed-Memory-Order，弱内存模型）"><a href="#RMO模型（Relaxed-Memory-Order，弱内存模型）" class="headerlink" title="RMO模型（Relaxed Memory Order，弱内存模型）"></a>RMO模型（Relaxed Memory Order，弱内存模型）</h3><p>aarch64架构采用此种内存模型</p>
+<p>RMO对四种操作皆可乱序</p>
+<h2 id="缓存一致性"><a href="#缓存一致性" class="headerlink" title="缓存一致性"></a>缓存一致性</h2><p>对于每个<code>CPU</code>核心而言，都有其自己独立的<code>L1 cache</code></p>
+<p>同一个簇内的<code>CPU</code>核心，有它们簇内共享的<code>L2 cache</code></p>
+<p>所有<code>CPU</code>核心，共享<code>L3 cache</code></p>
+<p><code>CPU</code>在执行内存读写操作时，首先会去自己的<code>L1 cache</code>查找缓存，如果没有，依次向<code>L2 cache</code>，<code>L3 cache</code>查找，如果都没有找到，再去主存中查找</p>
+<p>那么，如果<code>CPU0</code>从主存中读取了变量<code>a</code>，另一个线程在<code>CPU1</code>上也读取了这个变量<code>a</code>，此时就会出现竞态问题，如果<code>CPU0</code>修改了变量<code>a</code>，而<code>CPU1</code>上的另一个线程需要这个修改后的变量<code>a</code>来执行一些操作，这就需要在缓存行之间有一些同步的协议，也就是<code>MESI</code></p>
+<hr>
+<p>MESI协议（Modified, Exclusive, Shared, Invalid）是多处理器系统中一种广泛使用的缓存一致性协议。它通过维护缓存行的状态来确保缓存的一致性，避免上述的数据不一致问题。</p>
+<p>MESI协议的四种状态</p>
+<ul>
+<li><strong>M（Modified）</strong>：缓存行已被当前核心修改，且与主内存中的数据不一致。只有当前核心持有该缓存行。</li>
+<li><strong>E（Exclusive）</strong>：缓存行仅存在于当前核心的缓存中，但数据与主内存一致。</li>
+<li><strong>S（Shared）</strong>：缓存行可能存在于多个核心的缓存中，且数据与主内存一致。</li>
+<li><strong>I（Invalid）</strong>：缓存行无效，数据与主内存不一致或不再被使用。</li>
+</ul>
+<p><code>MESI</code>协议的核心思想是通过状态转换来确保各个核心的缓存数据一致。当一个核心对某个缓存行进行修改时，其他核心中对应的缓存行状态将变为无效（Invalid）。当一个核心需要访问一个已失效的缓存行时，它会从主内存或其他核心的缓存中获取最新数据，并更新其缓存状态。</p>
+<p>有限状态自动机的状态转换结束两种场景：缓存所在处理器的读写；其他处理器的读写。总线请求被[总线窥探器]监视。</p>
+<p>处理器对缓存的请求:</p>
+<ol>
+<li><code>PrRd</code>: 处理器请求<strong>读</strong>一个缓存块</li>
+<li><code>PrWr</code>: 处理器请求<strong>写</strong>一个缓存块</li>
+</ol>
+<p>总线对缓存的请求:</p>
+<ol>
+<li><code>BusRd</code>: 窥探器请求指出其他处理器请求<strong>读</strong>一个缓存块</li>
+<li><code>BusRdX</code>: 窥探器请求指出其他处理器请求<strong>写</strong>一个该处理器不拥有的缓存块</li>
+<li><code>BusUpgr</code>: 窥探器请求指出其他处理器请求<strong>写</strong>一个该处理器拥有的缓存块</li>
+<li><code>Flush</code>: 窥探器请求指出请求<strong>回写</strong>整个缓存到主存</li>
+<li><code>FlushOpt</code>: 窥探器请求指出整个缓存块被发到总线以发送给另外一个处理器（缓存到缓存的复制）</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>内存屏障与缓存一致性协议是互补的</p>
+<ul>
+<li><strong>MESI协议</strong>确保当一个核心修改了某个缓存行时，其他核心能够及时感知到这一变化，并更新或失效它们的缓存行，从而保证数据一致性。</li>
+<li><strong>内存屏障</strong>确保共享数据的更新顺序不会被编译器或处理器的重排机制打乱，从而防止数据竞态和不一致问题。</li>
+</ul>
+<p><strong>例子</strong>：考虑一个典型的生产者-消费者问题。生产者线程会将数据写入缓冲区，然后设置一个标志位通知消费者线程数据已准备好。消费者线程则等待标志位的变化，并读取缓冲区中的数据。</p>
+<ul>
+<li>生产者线程在写入缓冲区数据后，需要插入一个写屏障，以确保缓冲区数据在标志位更新前被完全写入。</li>
+<li>消费者线程在读取标志位前，需要插入一个读屏障，以确保它看到的标志位变化对应的是最新的缓冲区数据。</li>
+</ul>
+<p>MESI协议会确保生产者线程对缓冲区的修改在消费者线程中可见，而内存屏障则确保消费者读取到的缓冲区数据和标志位状态是一致的。</p>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs tex">https://alibaba-cloud.medium.com/memory-model-and-synchronization-primitive-part-1-memory-barrier-9585e50b4735<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs tex">// 一个MESI体验网站<br>https://www.scss.tcd.ie/Jeremy.Jones/VivioJS/caches/MESI.htm<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90%E5%8E%9F%E7%90%86/" class="category-chain-item">计算机组成原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/" class="print-no-link">#嵌入式</a>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90%E5%8E%9F%E7%90%86/" class="print-no-link">#计算机组成原理</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>剖析内存屏障</div>
+      <div>https://yill-z.github.io/2025/01/14/剖析内存屏障/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Yill Zhang</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年1月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/01/14/%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="缓存机制">
+                        <span class="hidden-mobile">缓存机制</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Yill-Z/Yill-Z.github.io');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
