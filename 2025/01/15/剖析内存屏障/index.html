@@ -22,12 +22,12 @@
     <meta name="description" content="剖析内存屏障">
 <meta property="og:type" content="article">
 <meta property="og:title" content="剖析内存屏障">
-<meta property="og:url" content="https://yill-z.github.io/2025/01/14/%E5%89%96%E6%9E%90%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C/index.html">
+<meta property="og:url" content="https://yill-z.github.io/2025/01/15/%E5%89%96%E6%9E%90%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C/index.html">
 <meta property="og:site_name" content="Yill&#39;s tech cabin.">
 <meta property="og:description" content="剖析内存屏障">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-01-14T15:49:55.000Z">
-<meta property="article:modified_time" content="2025-01-14T15:49:55.061Z">
+<meta property="article:published_time" content="2025-01-15T15:14:55.000Z">
+<meta property="article:modified_time" content="2025-01-15T15:14:55.363Z">
 <meta property="article:author" content="Yill Zhang">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="嵌入式">
@@ -215,8 +215,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-01-14 23:49" pubdate>
-          2025年1月14日 晚上
+        <time datetime="2025-01-15 23:14" pubdate>
+          2025年1月15日 晚上
         </time>
       </span>
     
@@ -227,7 +227,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.7k 字
+          6.6k 字
         
       </span>
     
@@ -313,15 +313,14 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// thread 1</span><br><span class="hljs-keyword">while</span>( !ok );<br><span class="hljs-keyword">do</span>(x);<br><br><span class="hljs-comment">// thread 2</span><br>x = <span class="hljs-number">42</span>;<br>ok = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
 
 <p><code>ok</code>作为全局变量，被初始化为<code>0</code>，现在两线程并发，有可能<code>ok</code>的赋值被乱序到<code>x = 42</code>之前（之所以会出现这种原因，是由于编译器发现<code>x</code>和<code>ok</code>的赋值没有依赖关系，它并不知道另一个线程对其有依赖），那么，线程1就判断条件通过，执行<code>do(x)</code>，他的实参<code>x</code>就不是<code>42</code>了，这种错误非常难以发现</p>
-<h2 id="经典示例"><a href="#经典示例" class="headerlink" title="经典示例"></a>经典示例</h2><p>% note info %</p>
-<p>注意如下场景：</p>
-<p>多线程环境 or 多进程共享内存时</p>
-<p>一个线程&#x2F;进程操作一个共享内容后，设置一个标志位，用以通知其余线程&#x2F;进程</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">shared_variable = new_value;<br>flag = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+<h2 id="经典示例"><a href="#经典示例" class="headerlink" title="经典示例"></a>经典示例</h2><div class="note note-primary">
+            <p>注意如下场景：</p><p>多线程环境 or 多进程共享内存时</p><p>一个线程&#x2F;进程操作一个共享内容后，设置一个标志位，用以通知其余线程&#x2F;进程</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">shared_variable = new_value;<br>flag = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure><p>在编译器和处理器中，由于<code>flag</code>和<code>shared_variable</code>两个变量没有依赖关系，因此有可能发生重排，也就是<code>flag = 1</code>在<code>shared_variable = new_value</code>之前发生，这就会导致，其他进程&#x2F;线程以为<code>shared_variable</code>已经是新值了，但其实这个赋值还没有发生，此时导致故障</p>
+          </div>
 
-<p>在编译器和处理器中，由于<code>flag</code>和<code>shared_variable</code>两个变量没有依赖关系，因此有可能发生重排，也就是<code>flag = 1</code>在<code>shared_variable = new_value</code>之前发生，这就会导致，其他进程&#x2F;线程以为<code>shared_variable</code>已经是新值了，但其实这个赋值还没有发生，此时导致故障<br>% endnote %</p>
-<h2 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h2><p>% note info %</p>
-<p>通常，内存屏障应用于并发无锁编程<br>% endnote %</p>
+<h2 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h2><div class="note note-info">
+            <p>通常，内存屏障应用于并发无锁编程</p>
+          </div>
+
 <p>理解了乱序之后，就需要想办法解决由此产生的问题</p>
 <p>既然乱序有两种原因导致，那么内存屏障也应该有两种</p>
 <ul>
@@ -335,9 +334,10 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> barrier() __asm__ __volatile__(<span class="hljs-string">&quot;&quot;</span>:::<span class="hljs-string">&quot;memory&quot;</span>);</span><br></code></pre></td></tr></table></figure>
 
 <p>这句代码在编译完成后，不会产生任何运行时指令，但是可以有效隔绝屏障前后的指令乱序</p>
-<p>% note info %</p>
-<p>by the way, <code>volatile</code>关键字可以起到同样的作用</p>
-<p>但仍有细微的差异：<code>volatile</code>会绑定该变量，这导致这个变量永远不能被寄存器缓存，每次访问该变量都会强制从内存中取值。而<code>barrier</code>只会影响该语句所在的上下文<br>% endnote %</p>
+<div class="note note-info">
+            <p>by the way, <code>volatile</code>关键字可以起到同样的作用</p><p>但仍有细微的差异：<code>volatile</code>会绑定该变量，这导致这个变量永远不能被寄存器缓存，每次访问该变量都会强制从内存中取值。而<code>barrier</code>只会影响该语句所在的上下文</p>
+          </div>
+
 <p>那么，<code>barrier</code>本身是完美的么？</p>
 <p>也不尽然</p>
 <p><code>barrier</code>会使当前上下文的所有寄存器缓存失效，这意味着所有的寄存器都需要从内存中更新内容，但是这可能是不必要的，有时我们可能只关心某一个寄存器中的内容</p>
@@ -346,9 +346,10 @@
 
 <p>虽然这里仍使用了<code>volatile</code>，但却是在一个临时变量中，这意味着仅在调用<code>ACCESS_ONCE</code>的时候抑制编译器优化，其他时候访问变量仍会启用编译器优化</p>
 <p>在GCC4.6和4.7版本中有一个bug，如果<code>ACCESS_ONCE</code>的参数是非标量（就是结构体，联合体，数组等），<code>volatile</code>标记会被编译器移除，例如通过<code>ACCESS_ONCE</code>访问<code>pte_t</code>类型变量会导致错误</p>
-<p>% note info %</p>
-<p>标量类型：只包含单一数值的简单数据类型，包括整形，浮点，指针</p>
-<p>向量类型：包含多个数值，数组，结构体，联合体<br>% endnote %</p>
+<div class="note note-info}">
+            <p>标量类型：只包含单一数值的简单数据类型，包括整形，浮点，指针</p><p>向量类型：包含多个数值，数组，结构体，联合体</p>
+          </div>
+
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> pte;<br>&#125; <span class="hljs-type">pte_t</span>;<br><span class="hljs-type">pte_t</span> p = ACCESS_ONCE(pte);  <span class="hljs-comment">// 报错！！！</span><br></code></pre></td></tr></table></figure>
 
 <p>由此，Linux引入了<code>READ_ONCE</code>和<code>WRITE_ONCE</code></p>
@@ -363,15 +364,18 @@
 <li><code>LoadLoad</code>：两次加载</li>
 <li><code>LoadStore</code>：先加载再写入</li>
 </ul>
-<p>% note info %</p>
-<p>其中，<code>STORESTORE</code>和<code>STORELOAD</code>两种重排涉及<code>store buffer</code></p>
-<p><code>LOADLOAD</code>涉及<code>invalidation queue</code><br>% endnote %</p>
+<div class="note note-info">
+            <p>其中，<code>STORESTORE</code>和<code>STORELOAD</code>两种重排涉及<code>store buffer</code></p><p><code>LOADLOAD</code>涉及<code>invalidation queue</code></p>
+          </div>
+
 <h4 id="存储缓冲区"><a href="#存储缓冲区" class="headerlink" title="存储缓冲区"></a>存储缓冲区</h4><p><code>CPU0</code>执行<code>STORE</code>操作时，需要通知其他<code>CPU</code>缓存失效，这是由<code>MESI</code>机制决定的</p>
 <p>但是这会造成<code>CPU0</code>在发出<code>Invalidate</code>到收到其他<code>CPU</code>的<code>Acknowledgement</code>这段时间进行忙等，由于<code>STORE</code>操作本质上是异步的，这段忙等完全可以让<code>CPU0</code>用来做其他事情</p>
 <p>因此硬件工程师们设计了一个存储缓冲区<code>store buffer</code>，<code>CPU</code>可以直接写入<code>store buffer</code>然后去做其他事情</p>
 <p>这个<code>store buffer</code>的位置在<code>CPU</code>和<code>L1 cache</code>之间，只有<code>STORE</code>操作会往里面写入数据，<code>CPU</code>发送<code>Invalidate</code>指令，将新数据写入<code>store buffer</code>，然后<code>CPU</code>继续执行其他操作，<code>store buffer</code>则等待收到其他<code>CPU</code>的<code>Acknowledgement</code>后，将其中的内容放入缓存行</p>
-<p>% note info %</p>
-<p>注意，<code>MESI</code>指令是针对缓存的，<code>store buffer</code>不是缓存，因此不受<code>MESI</code>影响，这会导致，在收到其他<code>CPU</code>的<code>Acknowledgement</code>回复之前，这个数据只在当前<code>CPU</code>的<code>store buffer</code>中存在<br>% endnote %</p>
+<div class="note note-danger">
+            <p>注意，<code>MESI</code>指令是针对缓存的，<code>store buffer</code>不是缓存，因此不受<code>MESI</code>影响，这会导致，在收到其他<code>CPU</code>的<code>Acknowledgement</code>回复之前，这个数据只在当前<code>CPU</code>的<code>store buffer</code>中存在</p>
+          </div>
+
 <p>e.g: 查看如下代码</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// a, b均为全局变量，a仅在cpu1的缓存行，b仅在cpu0的缓存行，其值均为0</span><br>a = <span class="hljs-number">1</span>;<br>b = a + <span class="hljs-number">1</span>;<br>assert(b == <span class="hljs-number">2</span>);<br></code></pre></td></tr></table></figure>
 
@@ -408,15 +412,19 @@
 <p>两条<code>STORE</code>指令被重排，因此称为<code>STORESTORE</code></p>
 <p>针对这个问题，就需要使用内存屏障</p>
 <p>问题的关键在于：两条写指令，前一条不在当前核的缓存中，后一条在，那么<code>a = 1</code>时，<code>a</code>被放在<code>store buffer</code>中，<code>b = 1</code>由于在缓存中，可以直接执行，而不会收到来自其他<code>CPU</code>的<code>invalidate acknowledge</code>信息</p>
-<p>% note info %</p>
-<p>引入<code>store buffer</code>后，多个<code>CPU</code>上并行运行的线程或进程的执行逻辑之间就有了联系，但是，编译器和硬件很难感受到这种逻辑联系，<strong>只有软件程序员知道</strong>，这就是内存屏障的用武之地！<br>% endnote %</p>
+<div class="note note-info}">
+            <p>引入<code>store buffer</code>后，多个<code>CPU</code>上并行运行的线程或进程的执行逻辑之间就有了联系，但是，编译器和硬件很难感受到这种逻辑联系，<strong>只有软件程序员知道</strong>，这就是内存屏障的用武之地！</p>
+          </div>
+
 <p>内存屏障的指令由硬件实现，不同架构的<code>CPU</code>有不同的内存屏障指令，内存屏障指令需要程序员在代码中显式调用，如：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">foo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    a = <span class="hljs-number">1</span>;<br>    smp_mb();<br>    b = <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">bar</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span> (b == <span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>    assert(a == <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>这里的内存屏障<code>smp_mb()</code>用于实现<code>STORESTORE</code>同步，当<code>smp_mb()</code>被调用时，<code>CPU</code>首先对<code>store buffer</code>执行刷新操作。在刷新操作期间，需要接收到所有其他<code>CPU</code>的无效确认<code>invalidate acknowledge</code>消息后，<code>store buffer</code>中缓存的修改后的数据将被更新到缓存行，此时，当<code>store buffer</code>中的所有数据都更新到缓存行时，<code>store buffer</code>造成的影响消失，<code>CPU</code>可以在<code>smp_mb()</code>内存屏障之后继续执行存储操作，<code>smp_mb()</code>内存屏障之后的加载操作可以在不完成<code>store buffer</code>刷新操作的情况下进行。</p>
 <p>当调用<code>smp_mb()</code>来刷新<code>store buffer</code>时，<code>CPU</code>可以等到<code>store buffer</code>中的数据被清除后再继续内存屏障之后的存储操作</p>
-<p>% note info %</p>
-<p>这里是指，当刷新<code>store buffer</code>时，可以继续执行<code>STORESTORE</code>后面的存储操作，但是不能直接写入到缓存行里面，只能放在<code>store buffer</code>里面<br>% endnote %</p>
+<div class="note note-info">
+            <p>这里是指，当刷新<code>store buffer</code>时，可以继续执行<code>STORESTORE</code>后面的存储操作，但是不能直接写入到缓存行里面，只能放在<code>store buffer</code>里面</p>
+          </div>
+
 <p>在上述代码中，如果没有使用<code>smp_mb()</code>内存屏障，当<code>CPU0</code>执行<code>b = 1</code>时，<code>CPU0</code>可以直接将变量<code>b</code>的新值写入缓存行中，因为变量<code>b</code>在<code>CPU0</code>中是<code>MESI</code>的<code>E</code>或<code>M</code>状态，即缓存命中</p>
 <p>现在加了<code>smp_mb()</code>内存屏障，当<code>CPU0</code>执行<code>b = 1</code>时，即使发生缓存命中，变量<code>b</code>的新值也无法写入缓存行，因为此时正在执行<code>store buffer</code>的刷新操作，相反，变量<code>b</code>的新值必须写入<code>store buffer</code>中，然后，变量<code>b</code>的新值可以在<code>store buffer</code>刷新的过程中更新的缓存行中</p>
 <p>在使用了<code>smp_mb()</code>内存屏障后，上述代码的执行流程变为：</p>
@@ -524,8 +532,10 @@
 </ul>
 <p>在ARM系统中，由于处理器和内存之间的操作可能会重排，因此内存屏障在保证操作顺序和数据一致性方面尤为重要。</p>
 <h2 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h2><h3 id="SC模型（sequential-consistency-顺序一致性）"><a href="#SC模型（sequential-consistency-顺序一致性）" class="headerlink" title="SC模型（sequential consistency, 顺序一致性）"></a>SC模型（sequential consistency, 顺序一致性）</h3><p><code>CPU</code>会按照程序中的顺序依次执行<code>STORE</code>和<code>LOAD</code></p>
-<p>% note info %</p>
-<p>最严格的内存模型<br>% endnote %</p>
+<div class="note note-info">
+            <p>最严格的内存模型</p>
+          </div>
+
 <h3 id="TSO模型（Total-Store-Order-完全存储顺序）"><a href="#TSO模型（Total-Store-Order-完全存储顺序）" class="headerlink" title="TSO模型（Total Store Order, 完全存储顺序）"></a>TSO模型（Total Store Order, 完全存储顺序）</h3><p>x86使用这种模型</p>
 <p>TSO模型允许store-load乱序</p>
 <p>store buffer会按照FIFO的顺序将数据写入到<code>L1 cache</code></p>
@@ -625,7 +635,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>剖析内存屏障</div>
-      <div>https://yill-z.github.io/2025/01/14/剖析内存屏障/</div>
+      <div>https://yill-z.github.io/2025/01/15/剖析内存屏障/</div>
     </div>
     <div class="license-meta">
       
@@ -637,7 +647,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2025年1月14日</div>
+          <div>2025年1月15日</div>
         </div>
       
       
@@ -669,12 +679,18 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2025/01/15/%E5%AE%8F%E7%9A%84%E5%B1%95%E5%BC%80%E8%A7%84%E5%88%99/" title="宏的展开规则">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">宏的展开规则</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/01/14/%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="缓存机制">
-                        <span class="hidden-mobile">缓存机制</span>
+                      <a href="/2025/01/06/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" title="Linux设备驱动模型">
+                        <span class="hidden-mobile">Linux设备驱动模型</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

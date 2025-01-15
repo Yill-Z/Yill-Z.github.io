@@ -305,15 +305,15 @@
 <p><strong>一种例外</strong>：当你仅仅是移动一段代码从一个文件到另一个地方，那么你的patch应该保持干净，这个patch应该仅有移动的动作。</p>
 <p><strong>代码风格检查脚本</strong>：<code>scripts/checkpatch.pl</code></p>
 <h2 id="选择patch的接受人"><a href="#选择patch的接受人" class="headerlink" title="选择patch的接受人"></a>选择patch的接受人</h2><p><strong>发现MAINTAINERS的脚本</strong>：<code>scripts/get_maintainer.pl</code></p>
-<p><strong>实在找不到MAINTAINERS</strong>：找  Andrew Morton (<a href="mailto:&#x61;&#x6b;&#x70;&#x6d;&#64;&#108;&#x69;&#110;&#x75;&#x78;&#x2d;&#102;&#x6f;&#x75;&#110;&#x64;&#x61;&#x74;&#x69;&#x6f;&#x6e;&#x2e;&#x6f;&#x72;&#103;">akpm@linux-foundation.org</a>)</p>
-<p><strong>选择一个邮件列表</strong>：<a href="mailto:&#108;&#x69;&#110;&#117;&#x78;&#45;&#107;&#101;&#x72;&#x6e;&#101;&#108;&#64;&#x76;&#103;&#x65;&#x72;&#x2e;&#x6b;&#x65;&#x72;&#x6e;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;">linux-kernel@vger.kernel.org</a> 是最后的手段（这个内容太多了），通常你应该在MAINTAINERS文件中找特定子系统的邮件列表，你的补丁可以获得更多关注，但是<em>不要向无关的列表发送垃圾邮件</em>。</p>
+<p><strong>实在找不到MAINTAINERS</strong>：找  Andrew Morton (<a href="mailto:&#x61;&#107;&#112;&#109;&#64;&#x6c;&#105;&#110;&#x75;&#120;&#45;&#102;&#x6f;&#x75;&#110;&#100;&#97;&#116;&#x69;&#x6f;&#x6e;&#46;&#x6f;&#114;&#103;">akpm@linux-foundation.org</a>)</p>
+<p><strong>选择一个邮件列表</strong>：<a href="mailto:&#x6c;&#105;&#110;&#x75;&#120;&#45;&#107;&#x65;&#114;&#110;&#101;&#x6c;&#64;&#118;&#103;&#x65;&#114;&#x2e;&#107;&#x65;&#x72;&#x6e;&#x65;&#x6c;&#x2e;&#x6f;&#114;&#x67;">linux-kernel@vger.kernel.org</a> 是最后的手段（这个内容太多了），通常你应该在MAINTAINERS文件中找特定子系统的邮件列表，你的补丁可以获得更多关注，但是<em>不要向无关的列表发送垃圾邮件</em>。</p>
 <p><strong>不要一次发送超过15个邮件！！！！</strong></p>
-<p><strong>安全相关的patch</strong>：如果你修复了一个安全相关的bug，发送邮件到<a href="mailto:&#115;&#101;&#x63;&#117;&#114;&#x69;&#x74;&#x79;&#x40;&#x6b;&#x65;&#114;&#x6e;&#101;&#108;&#x2e;&#111;&#114;&#103;">security@kernel.org</a>，修复一个发行版的严重bug时，需要同时抄送到stable maintainers。</p>
+<p><strong>安全相关的patch</strong>：如果你修复了一个安全相关的bug，发送邮件到<a href="mailto:&#115;&#x65;&#99;&#117;&#x72;&#x69;&#116;&#x79;&#x40;&#107;&#101;&#x72;&#x6e;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;">security@kernel.org</a>，修复一个发行版的严重bug时，需要同时抄送到stable maintainers。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">Cc: stable@vger.kernel.org<br></code></pre></td></tr></table></figure>
 
 <p><strong>添加Sign-off</strong></p>
-<p><strong>如果你的修改涉及内核用户态</strong>：发送一个man-page patch到MAN-PAGES的MAINTAINERS，或者至少发送一个更改通知，用户空间的API修改也应该备份到<a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#45;&#97;&#112;&#x69;&#64;&#118;&#103;&#x65;&#114;&#x2e;&#107;&#x65;&#x72;&#x6e;&#101;&#108;&#x2e;&#x6f;&#x72;&#x67;">linux-api@vger.kernel.org</a>。</p>
-<p><strong>一些琐碎的patch</strong>：也许你可以抄送到Trivial Patch Monkey<a href="mailto:&#116;&#114;&#105;&#x76;&#105;&#97;&#x6c;&#64;&#x6b;&#101;&#x72;&#110;&#x65;&#108;&#x2e;&#x6f;&#114;&#103;">trivial@kernel.org</a>。</p>
+<p><strong>如果你的修改涉及内核用户态</strong>：发送一个man-page patch到MAN-PAGES的MAINTAINERS，或者至少发送一个更改通知，用户空间的API修改也应该备份到<a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#45;&#97;&#112;&#x69;&#x40;&#x76;&#103;&#101;&#x72;&#x2e;&#x6b;&#x65;&#x72;&#x6e;&#101;&#108;&#46;&#111;&#x72;&#103;">linux-api@vger.kernel.org</a>。</p>
+<p><strong>一些琐碎的patch</strong>：也许你可以抄送到Trivial Patch Monkey<a href="mailto:&#116;&#x72;&#x69;&#118;&#105;&#x61;&#108;&#64;&#107;&#x65;&#114;&#110;&#x65;&#108;&#46;&#x6f;&#114;&#x67;">trivial@kernel.org</a>。</p>
 <h2 id="邮件大小"><a href="#邮件大小" class="headerlink" title="邮件大小"></a>邮件大小</h2><p><strong>当你的邮件大小超过300k</strong>：不要将过大的邮件发送到邮件列表和maintainers，超过300k的邮件更好的方法是将你的patch放在服务器上，并且提供一个URL指向你的patch。特别注意：如果你的patch超过300k，几乎可以确定它需要分解。</p>
 <h2 id="响应审查评论"><a href="#响应审查评论" class="headerlink" title="响应审查评论"></a>响应审查评论</h2><p><strong>忽略评审人是一个被评审人忽略的好办法</strong>：不会带来代码更改的评论或问题几乎肯定会带来评论或者日志的更改，以便于下一个评审人更好的理解发生了什么。</p>
 <h2 id="保持耐心"><a href="#保持耐心" class="headerlink" title="保持耐心"></a>保持耐心</h2><p><strong>评审人很忙</strong>：在确保发送到执行位置后，耐心等待至少一周。</p>
@@ -457,9 +457,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/01/01/shell/" title="shell语言详解">
+                      <a href="/2025/01/01/zsh/" title="zsh安装配置">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">shell语言详解</span>
+                        <span class="hidden-mobile">zsh安装配置</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
